@@ -16,6 +16,7 @@ const (
 	PrincipalTypeInstance = "instance"
 )
 
+// This constant defines the Principal type key
 var (
 	ClaimPrincipalType = "ptype"
 )
@@ -23,6 +24,7 @@ var (
 // Claims represents a collection of JWT claims
 type InternalClaims map[string][]InternalClaim
 
+// FromClaims takes in a list of claims and coverts it to InternalClaims
 func FromClaims(claimList []Claim) InternalClaims {
 	outputMap := make(map[string][]InternalClaim)
 
@@ -35,6 +37,7 @@ func FromClaims(claimList []Claim) InternalClaims {
 	return outputMap
 }
 
+// FromClaims takes in a claim and coverts it to an InternalClaim
 func FromClaim(claim Claim) InternalClaim {
 	return InternalClaim{
 		Issuer: *claim.Issuer,

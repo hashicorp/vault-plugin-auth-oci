@@ -9,6 +9,7 @@ import (
 	"strings"
 )
 
+//These constants store the configuration keys
 const (
 	HomeTenancyIdConfigName = "homeTenancyId"
 	BaseConfigPath          = "config/"

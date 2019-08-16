@@ -33,6 +33,7 @@ type backend struct {
 	// Lock to make changes to authClient entries
 	authClientMutex sync.RWMutex
 
+	// The client used to authenticate with OCI Identity
 	authenticationClient *AuthenticationClient
 }
 
@@ -59,6 +60,7 @@ func Backend() (*backend, error) {
 	return b, nil
 }
 
+// createAuthClient creates an authentication client if one was not already created and stores in the backend.
 func (b *backend) createAuthClient() error {
 
 	b.authClientMutex.Lock()
@@ -88,5 +90,13 @@ func (b *backend) createAuthClient() error {
 }
 
 const backendHelp = `
-OCI Auth Plugin
+The OCI Auth plugin enables authentication and authorization using OCI Identity credentials. 
+
+The OCI Auth plugin authorizes using roles. A role is defined as a set of allowed policies for specific entities. 
+When an entity such as a user or instance logs in, it requests a role. 
+The OCI Auth plugin checks whether the entity is allowed to use the role and which policies are associated with that role. 
+It then assigns the given policies to the request.
+
+The goal of roles is to restrict access to only the subset of secrets that are required, 
+even if the entity has access to many more secrets. This conforms to the least-privilege security model.
 `

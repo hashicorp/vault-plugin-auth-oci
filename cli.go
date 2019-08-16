@@ -72,6 +72,7 @@ func (h *CLIHandler) Auth(c *api.Client, m map[string]string) (*api.Secret, erro
 	return secret, nil
 }
 
+// CreateLoginData creates the interface required for a login request, signed using the corresponding OCI Identity Principal
 func CreateLoginData(clientAddress string, m map[string]string, path string) (map[string]interface{}, error) {
 
 	authtype, ok := m["authType"]

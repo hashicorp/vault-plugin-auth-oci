@@ -15,13 +15,14 @@ import (
 	"unicode"
 )
 
+// These constants store the required http path & method information for validating the signed request
 const (
 	PathVersionBase = "/v1"
 	PathBaseFormat  = "/auth/oci/login/%s"
 	PathLoginMethod = "get"
 )
 
-// Header constants
+// Signing Header constants
 const (
 	// HdrRequestTarget represents the special header name used to refer to the HTTP verb and URI in the signature.
 	HdrRequestTarget = `(request-target)`

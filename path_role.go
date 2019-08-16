@@ -10,10 +10,12 @@ import (
 	"strings"
 )
 
+// Constant to store the current role storage version
 var (
 	currentRoleStorageVersion = 1
 )
 
+// Constants for role specific data
 const (
 	DefaultTTLSeconds = 1800
 	MaxRoleNameLength = 50

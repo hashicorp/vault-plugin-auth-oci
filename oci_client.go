@@ -11,11 +11,13 @@ import (
 	"time"
 )
 
+// OciClient stores the client and configuration details for making API requests to OCI Identity Service
 type OciClient struct {
 	common.BaseClient
 	config *common.ConfigurationProvider
 }
 
+// These constants store information related to signing the http request
 const (
 	// requestHeaderDate The key for passing a header to indicate Date
 	requestHeaderDate = "Date"
@@ -56,6 +58,7 @@ func (client *OciClient) setConfigurationProvider(configProvider common.Configur
 	return nil
 }
 
+// ConstructLoginRequest takes in a path and returns a signed http request
 func (client OciClient) ConstructLoginRequest(path string) (request http.Request, err error) {
 	httpRequest, err := common.MakeDefaultHTTPRequestWithTaggedStruct(http.MethodGet, path, request)
 	if err != nil {
@@ -77,6 +80,7 @@ func (client OciClient) ConstructLoginRequest(path string) (request http.Request
 	return
 }
 
+// prepareRequest takes in a http request and adds the required information for signing it
 func (client *OciClient) prepareRequest(request *http.Request) (err error) {
 	if client.UserAgent == "" {
 		return fmt.Errorf("user agent can not be blank")
