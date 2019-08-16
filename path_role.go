@@ -14,9 +14,13 @@ var (
 	currentRoleStorageVersion = 1
 )
 
-const DEFAULT_TTL_SECONDS int = 1800
-const MAX_ROLE_NAME_LENGTH int = 50
-const MAX_OCIDS_PER_ROLE = 100 //increasing this above this limit might require implementing client-side paging in the filterGroupMembership API
+const (
+	DefaultTTLSeconds = 1800
+	MaxRoleNameLength = 50
+	// Increasing this above this limit might require implementing
+	// client-side paging in the filterGroupMembership API
+	MaxOCIDsPerRole = 100
+)
 
 func pathRole(b *backend) *framework.Path {
 	return &framework.Path{
@@ -227,7 +231,7 @@ func (b *backend) pathRoleCreate(ctx context.Context, req *logical.Request, data
 		return logical.ErrorResponse("missing role"), nil
 	}
 
-	if len(roleName) > MAX_ROLE_NAME_LENGTH {
+	if len(roleName) > MaxRoleNameLength {
 		return logical.ErrorResponse("role length exceeds the limit"), nil
 	}
 
@@ -259,7 +263,7 @@ func (b *backend) pathRoleCreate(ctx context.Context, req *logical.Request, data
 
 	if add_ocid_list, ok := data.GetOk("add_ocid_list"); ok {
 		roleEntry.OcidList = add_ocid_list.([]string)
-		if len(roleEntry.OcidList) > MAX_OCIDS_PER_ROLE {
+		if len(roleEntry.OcidList) > MaxOCIDsPerRole {
 			return logical.ErrorResponse("Number of OCIDs for this role exceeds the limit"), nil
 		}
 	}
@@ -270,8 +274,8 @@ func (b *backend) pathRoleCreate(ctx context.Context, req *logical.Request, data
 	if ok {
 		ttlVal := ttl.(int)
 
-		if ttlVal > DEFAULT_TTL_SECONDS {
-			return logical.ErrorResponse(fmt.Sprintf("Given ttl of %d seconds should be lesser than %d seconds;", ttlVal, DEFAULT_TTL_SECONDS)), nil
+		if ttlVal > DefaultTTLSeconds {
+			return logical.ErrorResponse(fmt.Sprintf("Given ttl of %d seconds should be lesser than %d seconds;", ttlVal, DefaultTTLSeconds)), nil
 		}
 
 		if ttlVal < 0 {
@@ -280,7 +284,7 @@ func (b *backend) pathRoleCreate(ctx context.Context, req *logical.Request, data
 
 		roleEntry.TTL = ttlVal
 	} else {
-		roleEntry.TTL = DEFAULT_TTL_SECONDS
+		roleEntry.TTL = DefaultTTLSeconds
 	}
 
 	if add_policy_list, ok := data.GetOk("add_policy_list"); ok {
@@ -335,7 +339,7 @@ func (b *backend) pathRoleUpdate(ctx context.Context, req *logical.Request, data
 
 	roleEntry.OcidList = mapToSlice(ocidMap)
 
-	if len(roleEntry.OcidList) > MAX_OCIDS_PER_ROLE {
+	if len(roleEntry.OcidList) > MaxOCIDsPerRole {
 		return logical.ErrorResponse("Number of OCIDs for this role exceeds the limit"), nil
 	}
 
@@ -345,8 +349,8 @@ func (b *backend) pathRoleUpdate(ctx context.Context, req *logical.Request, data
 	if ok {
 		ttlVal := ttl.(int)
 
-		if ttlVal > DEFAULT_TTL_SECONDS {
-			return logical.ErrorResponse(fmt.Sprintf("Given ttl of %d seconds should be lesser than %d seconds;", ttlVal, DEFAULT_TTL_SECONDS)), nil
+		if ttlVal > DefaultTTLSeconds {
+			return logical.ErrorResponse(fmt.Sprintf("Given ttl of %d seconds should be lesser than %d seconds;", ttlVal, DefaultTTLSeconds)), nil
 		}
 
 		if ttlVal < 0 {

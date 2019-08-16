@@ -52,12 +52,12 @@ Configuration:
 func (h *CLIHandler) Auth(c *api.Client, m map[string]string) (*api.Secret, error) {
 	role, ok := m["role"]
 	if !ok {
-		return nil, fmt.Errorf("Enter the role")
+		return nil, fmt.Errorf("enter the role")
 	}
 	role = strings.ToLower(role)
 
-	path := fmt.Sprintf(PATH_BASE_FORMAT, role)
-	signingPath := PATH_VERSION_BASE + path
+	path := fmt.Sprintf(PathBaseFormat, role)
+	signingPath := PathVersionBase + path
 
 	loginData, err := CreateLoginData(c.Address(), m, signingPath)
 	if err != nil {
@@ -76,7 +76,7 @@ func CreateLoginData(clientAddress string, m map[string]string, path string) (ma
 
 	authtype, ok := m["authType"]
 	if !ok {
-		return nil, fmt.Errorf("Enter the authType")
+		return nil, fmt.Errorf("enter the authType")
 	}
 
 	switch strings.ToLower(authtype) {
@@ -86,7 +86,7 @@ func CreateLoginData(clientAddress string, m map[string]string, path string) (ma
 		return createLoginDataForApiKeys(clientAddress, path)
 	}
 
-	return nil, fmt.Errorf("Unknown authType")
+	return nil, fmt.Errorf("unknown authType")
 }
 
 func createLoginDataForApiKeys(clientAddress string, path string) (map[string]interface{}, error) {

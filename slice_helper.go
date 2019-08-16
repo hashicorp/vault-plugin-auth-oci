@@ -2,7 +2,7 @@
 package ociauth
 
 func sliceToMap(inputSlice []string) map[string]string {
-	outputMap := make(map[string]string)
+	outputMap := make(map[string]string, len(inputSlice))
 	for _, item := range inputSlice {
 		outputMap[item] = item
 	}
@@ -26,8 +26,8 @@ func addSliceToMap(inputSlice []string, inputMap map[string]string) map[string]s
 	return inputMap
 }
 
-func removeSliceFromMap(inputslice []string, inputMap map[string]string) map[string]string {
-	for _, item := range inputslice {
+func removeSliceFromMap(inputSlice []string, inputMap map[string]string) map[string]string {
+	for _, item := range inputSlice {
 		delete(inputMap, item)
 	}
 	return inputMap

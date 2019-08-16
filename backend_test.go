@@ -11,21 +11,22 @@ import (
 	"time"
 )
 
-const DEV_ROLE string = "devrole"
-const OPS_ROLE string = "opsrole"
-const KNOWLEDGE_WORKER_ROLE string = "kwrole"
-const NON_EXISTANT_ROLE string = "nonrole"
+const (
+	DevRole             = "devrole"
+	OpsRole             = "opsrole"
+	KnowledgeWorkerRole = "kwrole"
+	NonExistentRole     = "nonrole"
+)
 
 func createHomeTenancy(t *testing.T, backendConfig *logical.BackendConfig, backend logical.Backend) {
 	var resp *logical.Response
 	var err error
-	configPath := "config/" + HOME_TENANCY_ID_CONFIG_NAME
+	configPath := "config/" + HomeTenancyIdConfigName
 
 	homeTenancyId := os.Getenv("HOME_TENANCY_ID")
 
-	//First create the config
 	configData := map[string]interface{}{
-		"configName":  HOME_TENANCY_ID_CONFIG_NAME,
+		"configName":  HomeTenancyIdConfigName,
 		"configValue": homeTenancyId,
 	}
 
@@ -70,42 +71,42 @@ func initTest(t *testing.T) (backend logical.Backend, config *logical.BackendCon
 	}
 	//Create the devRole
 	devRoleData := map[string]interface{}{
-		"role":            DEV_ROLE,
-		"description":     DEV_ROLE + " description",
+		"role":            DevRole,
+		"description":     DevRole + " description",
 		"add_ocid_list":   roleOcidList,
 		"add_policy_list": "policy1,policy2",
 		"ttl":             1500,
 	}
 
-	err = createRole(devRoleData, DEV_ROLE, backend, config)
+	err = createRole(devRoleData, DevRole, backend, config)
 	if err != nil {
 		return
 	}
 
 	//Create the opsRole
 	opsRoleData := map[string]interface{}{
-		"role":            OPS_ROLE,
-		"description":     OPS_ROLE + " description",
+		"role":            OpsRole,
+		"description":     OpsRole + " description",
 		"add_ocid_list":   "",
 		"add_policy_list": "policy3",
 		"ttl":             1000,
 	}
 
-	err = createRole(opsRoleData, OPS_ROLE, backend, config)
+	err = createRole(opsRoleData, OpsRole, backend, config)
 	if err != nil {
 		return
 	}
 
 	//Create the knowledgeWorkerRole
 	knowledgeWorkerRole := map[string]interface{}{
-		"role":            KNOWLEDGE_WORKER_ROLE,
-		"description":     KNOWLEDGE_WORKER_ROLE + " description",
+		"role":            KnowledgeWorkerRole,
+		"description":     KnowledgeWorkerRole + " description",
 		"add_ocid_list":   roleOcidList,
 		"add_policy_list": "policy1,policy5",
 		"ttl":             1000,
 	}
 
-	err = createRole(knowledgeWorkerRole, KNOWLEDGE_WORKER_ROLE, backend, config)
+	err = createRole(knowledgeWorkerRole, KnowledgeWorkerRole, backend, config)
 	if err != nil {
 		return
 	}
@@ -138,13 +139,13 @@ func TestBackEnd_ValidateUserApiKeyLogin(t *testing.T) {
 
 	cmdMap := map[string]string{
 		"authType": "apikey",
-		"role":     DEV_ROLE,
+		"role":     DevRole,
 	}
 	makeRequestAndValidateResponse(t, cmdMap, false, 1500*time.Second, []string{"policy1", "policy2"})
 
 	cmdMap = map[string]string{
 		"authType": "apikey",
-		"role":     KNOWLEDGE_WORKER_ROLE,
+		"role":     KnowledgeWorkerRole,
 	}
 	makeRequestAndValidateResponse(t, cmdMap, false, 1000*time.Second, []string{"policy1", "policy5"})
 }
@@ -158,7 +159,7 @@ func TestBackEnd_ValidateUserApiKeyLoginNotInRole(t *testing.T) {
 
 	cmdMap := map[string]string{
 		"authType": "apikey",
-		"role":     OPS_ROLE,
+		"role":     OpsRole,
 	}
 	makeRequestAndValidateResponse(t, cmdMap, true, 1500*time.Second, []string{})
 }
@@ -172,7 +173,7 @@ func TestBackEnd_ValidateUserApiKeyLoginNonExistentRole(t *testing.T) {
 
 	cmdMap := map[string]string{
 		"authType": "apikey",
-		"role":     NON_EXISTANT_ROLE,
+		"role":     NonExistentRole,
 	}
 	makeRequestAndValidateResponse(t, cmdMap, true, 1500*time.Second, []string{})
 }
@@ -186,13 +187,13 @@ func TestBackEnd_ValidateInstancePrincipalLogin(t *testing.T) {
 
 	cmdMap := map[string]string{
 		"authType": "ip",
-		"role":     DEV_ROLE,
+		"role":     DevRole,
 	}
 	makeRequestAndValidateResponse(t, cmdMap, false, 1500*time.Second, []string{"policy1", "policy2"})
 
 	cmdMap = map[string]string{
 		"authType": "ip",
-		"role":     KNOWLEDGE_WORKER_ROLE,
+		"role":     KnowledgeWorkerRole,
 	}
 	makeRequestAndValidateResponse(t, cmdMap, false, 1000*time.Second, []string{"policy1", "policy5"})
 }
@@ -206,7 +207,7 @@ func TestBackEnd_ValidateInstancePrincipalLoginNotInRole(t *testing.T) {
 
 	cmdMap := map[string]string{
 		"authType": "ip",
-		"role":     OPS_ROLE,
+		"role":     OpsRole,
 	}
 	makeRequestAndValidateResponse(t, cmdMap, true, 1500*time.Second, []string{})
 }
@@ -220,7 +221,7 @@ func TestBackEnd_ValidateInstancePrincipalLoginNonExistentRole(t *testing.T) {
 
 	cmdMap := map[string]string{
 		"authType": "ip",
-		"role":     NON_EXISTANT_ROLE,
+		"role":     NonExistentRole,
 	}
 	makeRequestAndValidateResponse(t, cmdMap, true, 1500*time.Second, []string{})
 }
@@ -228,8 +229,8 @@ func TestBackEnd_ValidateInstancePrincipalLoginNonExistentRole(t *testing.T) {
 func makeRequestAndValidateResponse(t *testing.T, cmdMap map[string]string, expectFailure bool, expectedTTL time.Duration, expectedPolicies []string) {
 
 	role := cmdMap["role"]
-	path := fmt.Sprintf(PATH_BASE_FORMAT, role)
-	signingPath := PATH_VERSION_BASE + path
+	path := fmt.Sprintf(PathBaseFormat, role)
+	signingPath := PathVersionBase + path
 
 	backend, config, err := initTest(t)
 	if err != nil {

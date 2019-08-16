@@ -39,8 +39,6 @@ type backend struct {
 func Backend() (*backend, error) {
 	b := &backend{}
 
-	b.authenticationClient = nil
-
 	b.Backend = &framework.Backend{
 		Help: backendHelp,
 		PathsSpecial: &logical.Paths{
@@ -70,18 +68,18 @@ func (b *backend) createAuthClient() error {
 		return nil
 	}
 
-	//Create the instance principal provider
+	// Create the instance principal provider
 	ip, err := auth.InstancePrincipalConfigurationProvider()
 	if err != nil {
 		b.Logger().Debug("Unable to create InstancePrincipalConfigurationProvider", "err", err)
-		return fmt.Errorf("Unable to create InstancePrincipalConfigurationProvider")
+		return fmt.Errorf("unable to create InstancePrincipalConfigurationProvider")
 	}
 
-	//Create the authentication client
+	// Create the authentication client
 	authenticationClient, err := NewAuthenticationClientWithConfigurationProvider(ip)
 	if err != nil {
 		b.Logger().Debug("Unable to create authenticationClient", "err", err)
-		return fmt.Errorf("Unable to create authenticationClient")
+		return fmt.Errorf("unable to create authenticationClient")
 	}
 
 	b.authenticationClient = &authenticationClient

@@ -26,11 +26,10 @@ func TestBackend_PathConfig(t *testing.T) {
 	if err := b.Setup(context.Background(), config); err != nil {
 		t.Fatal(err)
 	}
-	configPath := BASE_CONFIG_PATH + HOME_TENANCY_ID_CONFIG_NAME
+	configPath := BaseConfigPath + HomeTenancyIdConfigName
 
-	//First create the config
 	configData := map[string]interface{}{
-		"configName":  HOME_TENANCY_ID_CONFIG_NAME,
+		"configName":  HomeTenancyIdConfigName,
 		"configValue": "ocid1.tenancy.oc1..dummy",
 	}
 
@@ -79,7 +78,7 @@ func TestBackend_PathConfig(t *testing.T) {
 
 	//now try to update the config (should pass)
 	configUpdate := map[string]interface{}{
-		"configName":  HOME_TENANCY_ID_CONFIG_NAME,
+		"configName":  HomeTenancyIdConfigName,
 		"configValue": "ocid1.tenancy.oc1..dummy",
 	}
 

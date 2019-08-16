@@ -9,24 +9,26 @@ import (
 	"strings"
 )
 
-const HOME_TENANCY_ID_CONFIG_NAME = "homeTenancyId"
-const BASE_CONFIG_PATH = "config/"
+const (
+	HomeTenancyIdConfigName = "homeTenancyId"
+	BaseConfigPath          = "config/"
+)
 
 var allowedConfigNamesForCreate = map[string]string{
-	HOME_TENANCY_ID_CONFIG_NAME: HOME_TENANCY_ID_CONFIG_NAME,
+	HomeTenancyIdConfigName: HomeTenancyIdConfigName,
 }
 
 var allowedConfigNamesForUpdate = map[string]string{
-	HOME_TENANCY_ID_CONFIG_NAME: HOME_TENANCY_ID_CONFIG_NAME,
+	HomeTenancyIdConfigName: HomeTenancyIdConfigName,
 }
 
 var allowedConfigNamesForDelete = map[string]string{
-	HOME_TENANCY_ID_CONFIG_NAME: HOME_TENANCY_ID_CONFIG_NAME,
+	HomeTenancyIdConfigName: HomeTenancyIdConfigName,
 }
 
 func pathConfig(b *backend) *framework.Path {
 	return &framework.Path{
-		Pattern: BASE_CONFIG_PATH + framework.GenericNameRegex("configName"),
+		Pattern: BaseConfigPath + framework.GenericNameRegex("configName"),
 		Fields: map[string]*framework.FieldSchema{
 			"configName": {
 				Type:        framework.TypeString,
@@ -54,7 +56,7 @@ func pathConfig(b *backend) *framework.Path {
 
 func pathListConfigs(b *backend) *framework.Path {
 	return &framework.Path{
-		Pattern: BASE_CONFIG_PATH + "?",
+		Pattern: BaseConfigPath + "?",
 
 		Callbacks: map[logical.Operation]framework.OperationFunc{
 			logical.ListOperation: b.pathConfigList,
@@ -126,7 +128,7 @@ func (b *backend) nonLockedSetOCIConfig(ctx context.Context, s logical.Storage, 
 		return fmt.Errorf("config is not found")
 	}
 
-	entry, err := logical.StorageEntryJSON(BASE_CONFIG_PATH+configName, configEntry)
+	entry, err := logical.StorageEntryJSON(BaseConfigPath+configName, configEntry)
 	if err != nil {
 		return err
 	}
@@ -149,7 +151,7 @@ func (b *backend) nonLockedOCIConfig(ctx context.Context, s logical.Storage, con
 		return nil, fmt.Errorf("missing configName")
 	}
 
-	entry, err := s.Get(ctx, BASE_CONFIG_PATH+configName)
+	entry, err := s.Get(ctx, BaseConfigPath+configName)
 	if err != nil {
 		return nil, err
 	}
@@ -169,7 +171,7 @@ func (b *backend) pathConfigList(ctx context.Context, req *logical.Request, data
 	b.configMutex.RLock()
 	defer b.configMutex.RUnlock()
 
-	configs, err := req.Storage.List(ctx, BASE_CONFIG_PATH)
+	configs, err := req.Storage.List(ctx, BaseConfigPath)
 	if err != nil {
 		return nil, err
 	}
@@ -288,7 +290,7 @@ func (b *backend) pathConfigDelete(ctx context.Context, req *logical.Request, da
 	b.configMutex.Lock()
 	defer b.configMutex.Unlock()
 
-	return nil, req.Storage.Delete(ctx, BASE_CONFIG_PATH+configName)
+	return nil, req.Storage.Delete(ctx, BaseConfigPath+configName)
 }
 
 // Struct to hold the information associated with an OCI config

@@ -15,9 +15,11 @@ import (
 	"unicode"
 )
 
-const PATH_VERSION_BASE = "/v1"
-const PATH_BASE_FORMAT = "/auth/oci/login/%s"
-const PATH_LOGIN_METHOD = "get"
+const (
+	PathVersionBase = "/v1"
+	PathBaseFormat  = "/auth/oci/login/%s"
+	PathLoginMethod = "get"
+)
 
 // Header constants
 const (
@@ -69,8 +71,8 @@ func (b *backend) pathLoginUpdate(ctx context.Context, req *logical.Request, dat
 	}
 
 	//Find the targetUrl and Method
-	finalLoginPath := PATH_VERSION_BASE + fmt.Sprintf(PATH_BASE_FORMAT, roleName)
-	method, targetUrl, err := requestTargetToMethodURL(authenticateRequestHeaders[HdrRequestTarget], PATH_LOGIN_METHOD, finalLoginPath)
+	finalLoginPath := PathVersionBase + fmt.Sprintf(PathBaseFormat, roleName)
+	method, targetUrl, err := requestTargetToMethodURL(authenticateRequestHeaders[HdrRequestTarget], PathLoginMethod, finalLoginPath)
 	if err != nil {
 		return unauthorizedLogicalResponse(req, b.Logger(), err)
 	}
@@ -194,7 +196,7 @@ func (b *backend) pathLoginUpdate(ctx context.Context, req *logical.Request, dat
 
 func (b *backend) validateHomeTenancy(ctx context.Context, req *logical.Request, homeTenancyId string) error {
 
-	configEntry, err := b.nonLockedOCIConfig(ctx, req.Storage, HOME_TENANCY_ID_CONFIG_NAME)
+	configEntry, err := b.nonLockedOCIConfig(ctx, req.Storage, HomeTenancyIdConfigName)
 	if err != nil {
 		return err
 	}
