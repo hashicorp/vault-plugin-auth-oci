@@ -138,13 +138,13 @@ func TestBackEnd_ValidateUserApiKeyLogin(t *testing.T) {
 
 	cmdMap := map[string]string{
 		"auth_type": "apikey",
-		"role":     DevRole,
+		"role":      DevRole,
 	}
 	makeRequestAndValidateResponse(t, cmdMap, false, 1500*time.Second, []string{"policy1", "policy2"})
 
 	cmdMap = map[string]string{
 		"auth_type": "apikey",
-		"role":     KnowledgeWorkerRole,
+		"role":      KnowledgeWorkerRole,
 	}
 	makeRequestAndValidateResponse(t, cmdMap, false, 1000*time.Second, []string{"policy1", "policy5"})
 }
@@ -158,7 +158,7 @@ func TestBackEnd_ValidateUserApiKeyLoginNotInRole(t *testing.T) {
 
 	cmdMap := map[string]string{
 		"auth_type": "apikey",
-		"role":     OpsRole,
+		"role":      OpsRole,
 	}
 	makeRequestAndValidateResponse(t, cmdMap, true, 1500*time.Second, []string{})
 }
@@ -172,7 +172,7 @@ func TestBackEnd_ValidateUserApiKeyLoginNonExistentRole(t *testing.T) {
 
 	cmdMap := map[string]string{
 		"auth_type": "apikey",
-		"role":     NonExistentRole,
+		"role":      NonExistentRole,
 	}
 	makeRequestAndValidateResponse(t, cmdMap, true, 1500*time.Second, []string{})
 }
@@ -186,13 +186,13 @@ func TestBackEnd_ValidateInstancePrincipalLogin(t *testing.T) {
 
 	cmdMap := map[string]string{
 		"auth_type": "ip",
-		"role":     DevRole,
+		"role":      DevRole,
 	}
 	makeRequestAndValidateResponse(t, cmdMap, false, 1500*time.Second, []string{"policy1", "policy2"})
 
 	cmdMap = map[string]string{
 		"auth_type": "ip",
-		"role":     KnowledgeWorkerRole,
+		"role":      KnowledgeWorkerRole,
 	}
 	makeRequestAndValidateResponse(t, cmdMap, false, 1000*time.Second, []string{"policy1", "policy5"})
 }
@@ -206,7 +206,7 @@ func TestBackEnd_ValidateInstancePrincipalLoginNotInRole(t *testing.T) {
 
 	cmdMap := map[string]string{
 		"auth_type": "ip",
-		"role":     OpsRole,
+		"role":      OpsRole,
 	}
 	makeRequestAndValidateResponse(t, cmdMap, true, 1500*time.Second, []string{})
 }
@@ -220,7 +220,7 @@ func TestBackEnd_ValidateInstancePrincipalLoginNonExistentRole(t *testing.T) {
 
 	cmdMap := map[string]string{
 		"auth_type": "ip",
-		"role":     NonExistentRole,
+		"role":      NonExistentRole,
 	}
 	makeRequestAndValidateResponse(t, cmdMap, true, 1500*time.Second, []string{})
 }
