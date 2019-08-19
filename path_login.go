@@ -54,7 +54,7 @@ func (b *backend) pathLoginUpdate(ctx context.Context, req *logical.Request, dat
 	//Validate the role
 	role, ok := data.GetOk("role")
 	if !ok {
-		return unauthorizedLogicalResponse(req, b.Logger(), fmt.Errorf("role is not specified"))
+		return logical.ErrorResponse("Role is not specified"), nil
 	}
 	roleName := role.(string)
 
