@@ -26,11 +26,10 @@ func TestBackend_PathConfig(t *testing.T) {
 	if err := b.Setup(context.Background(), config); err != nil {
 		t.Fatal(err)
 	}
-	configPath := BaseConfigPath + HomeTenancyIdConfigName
+	configPath := "config"
 
 	configData := map[string]interface{}{
-		"configName":  HomeTenancyIdConfigName,
-		"configValue": "ocid1.tenancy.oc1..dummy",
+		HomeTenancyIdConfigName: "ocid1.tenancy.oc1..dummy",
 	}
 
 	configReq := &logical.Request{
@@ -45,27 +44,6 @@ func TestBackend_PathConfig(t *testing.T) {
 		t.Fatalf("Config creation failed. resp:%#v\n err:%v", resp, err)
 	}
 
-	//Now try to create a different config (should fail)
-	invalidConfigData := map[string]interface{}{
-		"configName":  "mydummyconfig",
-		"configValue": "ocid1.tenancy.oc1..dummy",
-	}
-
-	invalidConfigReq := &logical.Request{
-		Operation: logical.CreateOperation,
-		Storage:   config.StorageView,
-		Data:      invalidConfigData,
-	}
-
-	invalidConfigReq.Path = "config/mydummyconfig"
-	resp, err = b.HandleRequest(context.Background(), invalidConfigReq)
-	if err != nil {
-		t.Fatalf("Config creation failed. resp:%#v\n err:%v", resp, err)
-	}
-	if resp == nil || resp.IsError() == false {
-		t.Fatalf("Config creation succeded while it should'nt have.")
-	}
-
 	//now read the config
 	resp, err = b.HandleRequest(context.Background(), &logical.Request{
 		Operation: logical.ReadOperation,
@@ -78,8 +56,7 @@ func TestBackend_PathConfig(t *testing.T) {
 
 	//now try to update the config (should pass)
 	configUpdate := map[string]interface{}{
-		"configName":  HomeTenancyIdConfigName,
-		"configValue": "ocid1.tenancy.oc1..dummy",
+		HomeTenancyIdConfigName: "ocid1.tenancy.oc2..dummy",
 	}
 
 	configReqUpdate := &logical.Request{
@@ -95,23 +72,10 @@ func TestBackend_PathConfig(t *testing.T) {
 	}
 
 	if resp != nil && resp.IsError() == true {
-		t.Fatalf("Config update succeded while it should'nt have.")
+		t.Fatalf("Config update failed.")
 	}
 
-	//now list the configs
-	resp, err = b.HandleRequest(context.Background(), &logical.Request{
-		Operation: logical.ListOperation,
-		Path:      "config/",
-		Storage:   config.StorageView,
-	})
-	if err != nil || (resp != nil && resp.IsError()) {
-		t.Fatalf("listing configs failed. resp:%#v\n err:%v", resp, err)
-	}
-	if len(resp.Data["keys"].([]string)) != 1 {
-		t.Fatalf("failed to list all configs")
-	}
-
-	//now try to delete the config (should fail)
+	//now try to delete the config
 	resp, err = b.HandleRequest(context.Background(), &logical.Request{
 		Operation: logical.DeleteOperation,
 		Path:      configPath,
@@ -120,5 +84,6 @@ func TestBackend_PathConfig(t *testing.T) {
 	if err != nil || (resp != nil && resp.IsError()) {
 		t.Fatalf("Config delete failed. resp:%#v\n err:%v", resp, err)
 	}
+
 	fmt.Println("All tests completed successfully")
 }

@@ -11,7 +11,6 @@ import (
 	"github.com/pkg/errors"
 	"net/http"
 	"strings"
-	"time"
 	"unicode"
 )
 
@@ -26,7 +25,6 @@ const (
 const (
 	// HdrRequestTarget represents the special header name used to refer to the HTTP verb and URI in the signature.
 	HdrRequestTarget = `(request-target)`
-	HdrHost          = `host`
 )
 
 func pathLogin(b *backend) *framework.Path {
@@ -34,11 +32,11 @@ func pathLogin(b *backend) *framework.Path {
 		Pattern: "login/" + framework.GenericNameRegex("role"),
 		Fields: map[string]*framework.FieldSchema{
 			"requestHeaders": {
-				Type:        framework.TypeMap,
+				Type:        framework.TypeHeader,
 				Description: `The signed headers of the client`,
 			},
 			"role": {
-				Type:        framework.TypeString,
+				Type:        framework.TypeLowerCaseString,
 				Description: "Name of the role.",
 			},
 		},
@@ -59,17 +57,11 @@ func (b *backend) pathLoginUpdate(ctx context.Context, req *logical.Request, dat
 		return unauthorizedLogicalResponse(req, b.Logger(), fmt.Errorf("role is not specified"))
 	}
 	roleName := role.(string)
-	if roleName != strings.ToLower(roleName) { //sanity check to prevent early exit when roleName case is mismatched, to prevent auth verification headers later-on
-		return unauthorizedLogicalResponse(req, b.Logger(), fmt.Errorf("role is not in lower case"))
-	}
 
 	b.Logger().Debug(req.ID, "pathLoginUpdate roleName", roleName)
 
 	//Parse the authentication headers
-	authenticateRequestHeaders, err := deserializeRequest(data, b.Logger())
-	if err != nil {
-		return unauthorizedLogicalResponse(req, b.Logger(), err)
-	}
+	authenticateRequestHeaders := data.Get("requestHeaders").(http.Header)
 
 	//Find the targetUrl and Method
 	finalLoginPath := PathVersionBase + fmt.Sprintf(PathBaseFormat, roleName)
@@ -171,25 +163,24 @@ func (b *backend) pathLoginUpdate(ctx context.Context, req *logical.Request, dat
 	b.Logger().Debug("Login ok", "Method:", method, "targetUrl:", targetUrl, "id", req.ID)
 
 	//Return the response
-	resp := &logical.Response{
-		Auth: &logical.Auth{
-			Period:   time.Duration(roleEntry.TTL) * time.Second,
-			Policies: roleEntry.PolicyList,
-			Metadata: map[string]string{
-				"role_name": roleName,
-			},
-			InternalData: map[string]interface{}{
-				"role_name": roleName,
-			},
-			DisplayName: roleName,
-			LeaseOptions: logical.LeaseOptions{
-				Renewable: false,
-				TTL:       time.Duration(roleEntry.TTL) * time.Second,
-			},
-			Alias: &logical.Alias{
-				Name: "name",
-			},
+	auth := &logical.Auth{
+		Metadata: map[string]string{
+			"role_name": roleName,
 		},
+		InternalData: map[string]interface{}{
+			"role_name": roleName,
+		},
+		DisplayName: roleName,
+		Alias: &logical.Alias{
+			Name: "name",
+		},
+	}
+
+	roleEntry.PopulateTokenAuth(auth)
+	auth.Renewable = false
+
+	resp := &logical.Response{
+		Auth: auth,
 	}
 
 	return resp, nil
@@ -197,83 +188,20 @@ func (b *backend) pathLoginUpdate(ctx context.Context, req *logical.Request, dat
 
 func (b *backend) validateHomeTenancy(ctx context.Context, req *logical.Request, homeTenancyId string) error {
 
-	configEntry, err := b.nonLockedOCIConfig(ctx, req.Storage, HomeTenancyIdConfigName)
+	configEntry, err := b.nonLockedOCIConfig(ctx, req.Storage)
 	if err != nil {
 		return err
 	}
 
-	if configEntry == nil || configEntry.ConfigValue == "" {
+	if configEntry == nil || configEntry.HomeTenancyId == "" {
 		return fmt.Errorf("Home Tenancy is invalid")
 	}
-	configuredHomeTenancyId := configEntry.ConfigValue
 
-	if homeTenancyId != configuredHomeTenancyId {
+	if homeTenancyId != configEntry.HomeTenancyId {
 		return fmt.Errorf("Invalid Tenancy")
 	}
 
 	return nil
-}
-
-func deserializeRequest(data *framework.FieldData, logger log.Logger) (map[string][]string, error) {
-	requestHeaders := data.Get("requestHeaders")
-	if requestHeaders == nil {
-		return nil, errors.New("Empty Authentication Request")
-	}
-
-	return convertHeaders(requestHeaders.(map[string]interface{}))
-}
-
-// Vault provides the header of type map[string]interface{}, interfaceToString
-// meant to convert  map[string]interface{} to map[string][]string for later processing
-func convertHeaders(header map[string]interface{}) (map[string][]string, error) {
-	returnHeader := map[string][]string{}
-
-	var err error
-	for key, _ := range header {
-		// HdrRequestTarget and HdrHost are expected to be lower case, anything else needs to be Title case
-		if key == HdrRequestTarget || key == HdrHost {
-			returnHeader[key], err = interfaceToStringSlice(header[key])
-		} else {
-			returnHeader[strings.Title(key)], err = interfaceToStringSlice(header[key])
-		}
-		if err != nil {
-			return nil, err
-		}
-	}
-	return returnHeader, nil
-}
-
-func interfaceToStringSlice(interfaceList interface{}) ([]string, error) {
-	// try to convert interface{} to []interface{}
-	switch interfaceList.(type) {
-	// If it is already []string, assert type and return value
-	case []string:
-		interfaceAsList, ok := interfaceList.([]string)
-		if !ok {
-			return nil, errors.New("interfaceToStringSlice failure 1")
-		}
-		return interfaceAsList, nil
-
-	case interface{}:
-		interfaceAsList, ok := interfaceList.([]interface{})
-		if !ok {
-			return nil, errors.New("interfaceToStringSlice failure 2")
-		}
-		returnString := make([]string, len(interfaceAsList))
-		// for every element in the slice, try to convert to string
-		for i, value := range interfaceAsList {
-			switch typedValue := value.(type) {
-			case string:
-				returnString[i] = typedValue
-			default:
-				// if not string return error
-				return nil, errors.New("interfaceToStringSlice failure 3")
-			}
-		}
-		return returnString, nil
-	default:
-		return nil, errors.New("interfaceToStringSlice failure 4")
-	}
 }
 
 func unauthorizedLogicalResponse(req *logical.Request, logger log.Logger, err error) (*logical.Response, error) {

@@ -52,7 +52,6 @@ func Backend() (*backend, error) {
 			pathRole(b),
 			pathListRoles(b),
 			pathConfig(b),
-			pathListConfigs(b),
 		},
 		BackendType: logical.TypeCredential,
 	}

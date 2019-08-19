@@ -2,7 +2,9 @@
 package ociauth
 
 import (
+	"errors"
 	"fmt"
+	"github.com/hashicorp/errwrap"
 	"github.com/oracle/oci-go-sdk/common"
 	"net/http"
 	"net/url"
@@ -33,18 +35,12 @@ const (
 func NewOciClientWithConfigurationProvider(configProvider common.ConfigurationProvider) (client OciClient, err error) {
 	baseClient, err := common.NewClientWithConfig(configProvider)
 	if err != nil {
-		return
+		return client, err
 	}
 
 	client = OciClient{BaseClient: baseClient}
-	client.BasePath = ""
 	err = client.setConfigurationProvider(configProvider)
-	return
-}
-
-// SetRegion overrides the region of this client.
-func (client *OciClient) SetHost(host string) {
-	client.Host = host
+	return client, err
 }
 
 // SetConfigurationProvider sets the configuration provider including the region, returns an error if is not valid
@@ -76,14 +72,13 @@ func (client OciClient) ConstructLoginRequest(path string) (request http.Request
 	}
 
 	request = httpRequest
-	err = nil
 	return
 }
 
 // prepareRequest takes in a http request and adds the required information for signing it
 func (client *OciClient) prepareRequest(request *http.Request) (err error) {
 	if client.UserAgent == "" {
-		return fmt.Errorf("user agent can not be blank")
+		return errors.New("user agent can not be blank")
 	}
 
 	if request.Header == nil {
@@ -92,14 +87,14 @@ func (client *OciClient) prepareRequest(request *http.Request) (err error) {
 	request.Header.Set(requestHeaderUserAgent, client.UserAgent)
 	request.Header.Set(requestHeaderDate, time.Now().UTC().Format(http.TimeFormat))
 
-	if !strings.Contains(client.Host, "http") &&
-		!strings.Contains(client.Host, "https") {
+	if !strings.HasPrefix(client.Host, "http://") &&
+		!strings.HasPrefix(client.Host, "https://") {
 		client.Host = fmt.Sprintf("%s://%s", defaultScheme, client.Host)
 	}
 
 	clientURL, err := url.Parse(client.Host)
 	if err != nil {
-		return fmt.Errorf("host is invalid. %s", err.Error())
+		return errwrap.Wrapf("host is invalid. {{err}}", err)
 	}
 	request.URL.Host = clientURL.Host
 	request.URL.Scheme = clientURL.Scheme

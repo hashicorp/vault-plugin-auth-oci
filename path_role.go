@@ -5,67 +5,36 @@ import (
 	"context"
 	"fmt"
 	"github.com/hashicorp/vault/sdk/framework"
+	"github.com/hashicorp/vault/sdk/helper/tokenutil"
 	"github.com/hashicorp/vault/sdk/logical"
-	"regexp"
-	"strings"
-)
-
-// Constant to store the current role storage version
-var (
-	currentRoleStorageVersion = 1
 )
 
 // Constants for role specific data
 const (
-	DefaultTTLSeconds = 1800
-	MaxRoleNameLength = 50
 	// Increasing this above this limit might require implementing
 	// client-side paging in the filterGroupMembership API
 	MaxOCIDsPerRole = 100
 )
 
 func pathRole(b *backend) *framework.Path {
-	return &framework.Path{
+	p := &framework.Path{
 		Pattern: "role/" + framework.GenericNameRegex("role"),
 		Fields: map[string]*framework.FieldSchema{
 			"role": {
-				Type:        framework.TypeString,
+				Type:        framework.TypeLowerCaseString,
 				Description: "Name of the role.",
 			},
-			"description": {
-				Type:        framework.TypeString,
-				Description: `A description of the role.`,
-			},
-			"add_ocid_list": {
+			"ocid_list": {
 				Type:        framework.TypeCommaStringSlice,
-				Description: `A comma separated list of OCIDs to add.`,
-			},
-			"remove_ocid_list": {
-				Type:        framework.TypeCommaStringSlice,
-				Description: `A comma separated list of OCIDs to remove. Is applicable only for the UPDATE operation.`,
-			},
-			"ttl": {
-				Type:        framework.TypeInt,
-				Default:     0,
-				Description: `Duration in seconds after which the issued token should expire. Defaults to 1800 seconds.`,
-			},
-			"add_policy_list": {
-				Type:        framework.TypeCommaStringSlice,
-				Default:     "default",
-				Description: "A list of Policies to be set on tokens issued using this role.",
-			},
-			"remove_policy_list": {
-				Type:        framework.TypeCommaStringSlice,
-				Default:     "default",
-				Description: "A list of Policies to be remove from the role. Is applicable only for the UPDATE operation.",
+				Description: `A comma separated list of Group or Dynamic Group OCIDs that are allowed to take this role.`,
 			},
 		},
 
 		ExistenceCheck: b.pathRoleExistenceCheck,
 
 		Callbacks: map[logical.Operation]framework.OperationFunc{
-			logical.CreateOperation: b.pathRoleCreate,
-			logical.UpdateOperation: b.pathRoleUpdate,
+			logical.CreateOperation: b.pathRoleCreateUpdate,
+			logical.UpdateOperation: b.pathRoleCreateUpdate,
 			logical.ReadOperation:   b.pathRoleRead,
 			logical.DeleteOperation: b.pathRoleDelete,
 		},
@@ -73,6 +42,10 @@ func pathRole(b *backend) *framework.Path {
 		HelpSynopsis:    pathRoleSyn,
 		HelpDescription: pathRoleDesc,
 	}
+
+	tokenutil.AddTokenFields(p.Fields)
+
+	return p
 }
 
 func pathListRoles(b *backend) *framework.Path {
@@ -91,7 +64,7 @@ func pathListRoles(b *backend) *framework.Path {
 // Establishes dichotomy of request operation between CreateOperation and UpdateOperation.
 // Returning 'true' forces an UpdateOperation, CreateOperation otherwise.
 func (b *backend) pathRoleExistenceCheck(ctx context.Context, req *logical.Request, data *framework.FieldData) (bool, error) {
-	entry, err := b.lockedOCIRole(ctx, req.Storage, strings.ToLower(data.Get("role").(string)))
+	entry, err := b.lockedOCIRole(ctx, req.Storage, data.Get("role").(string))
 	if err != nil {
 		return false, err
 	}
@@ -149,7 +122,7 @@ func (b *backend) nonLockedSetOCIRole(ctx context.Context, s logical.Storage, ro
 		return fmt.Errorf("nil role entry")
 	}
 
-	entry, err := logical.StorageEntryJSON("role/"+strings.ToLower(roleName), roleEntry)
+	entry, err := logical.StorageEntryJSON("role/"+roleName, roleEntry)
 	if err != nil {
 		return err
 	}
@@ -172,7 +145,7 @@ func (b *backend) nonLockedOCIRole(ctx context.Context, s logical.Storage, roleN
 		return nil, fmt.Errorf("missing role name")
 	}
 
-	entry, err := s.Get(ctx, "role/"+strings.ToLower(roleName))
+	entry, err := s.Get(ctx, "role/"+roleName)
 	if err != nil {
 		return nil, err
 	}
@@ -190,20 +163,11 @@ func (b *backend) nonLockedOCIRole(ctx context.Context, s logical.Storage, roleN
 
 func (b *backend) pathRoleDelete(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 	roleName := data.Get("role").(string)
-	if roleName == "" {
-		return logical.ErrorResponse("missing role"), nil
-	}
 
-	b.roleMutex.Lock()
-	defer b.roleMutex.Unlock()
-
-	return nil, req.Storage.Delete(ctx, "role/"+strings.ToLower(roleName))
+	return nil, req.Storage.Delete(ctx, "role/"+roleName)
 }
 
 func (b *backend) pathRoleList(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
-	b.roleMutex.RLock()
-	defer b.roleMutex.RUnlock()
-
 	roles, err := req.Storage.List(ctx, "role/")
 	if err != nil {
 		return nil, err
@@ -212,7 +176,7 @@ func (b *backend) pathRoleList(ctx context.Context, req *logical.Request, data *
 }
 
 func (b *backend) pathRoleRead(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
-	roleEntry, err := b.lockedOCIRole(ctx, req.Storage, strings.ToLower(data.Get("role").(string)))
+	roleEntry, err := b.lockedOCIRole(ctx, req.Storage, data.Get("role").(string))
 	if err != nil {
 		return nil, err
 	}
@@ -220,27 +184,30 @@ func (b *backend) pathRoleRead(ctx context.Context, req *logical.Request, data *
 		return nil, nil
 	}
 
+	responseData := map[string]interface{}{
+		"role":      roleEntry.Role,
+		"ocid_list": roleEntry.OcidList,
+	}
+
+	convertNilToEmptySlice := func(data map[string]interface{}, field string) {
+		if data[field] == nil || len(data[field].([]string)) == 0 {
+			data[field] = []string{}
+		}
+	}
+
+	convertNilToEmptySlice(responseData, "ocid_list")
+
+	roleEntry.PopulateTokenData(responseData)
+
 	return &logical.Response{
-		Data: roleEntry.ToResponseData(),
+		Data: responseData,
 	}, nil
 }
 
 // create a Role
-func (b *backend) pathRoleCreate(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
+func (b *backend) pathRoleCreateUpdate(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 
-	roleName := strings.ToLower(data.Get("role").(string))
-	if roleName == "" {
-		return logical.ErrorResponse("missing role"), nil
-	}
-
-	if len(roleName) > MaxRoleNameLength {
-		return logical.ErrorResponse("role length exceeds the limit"), nil
-	}
-
-	validateRoleRegEx := regexp.MustCompile(`^[A-Za-z0-9]+$`).MatchString
-	if !validateRoleRegEx(roleName) {
-		return logical.ErrorResponse("role is invalid"), nil
-	}
+	roleName := data.Get("role").(string)
 
 	b.roleMutex.Lock()
 	defer b.roleMutex.Unlock()
@@ -250,132 +217,26 @@ func (b *backend) pathRoleCreate(ctx context.Context, req *logical.Request, data
 		return nil, err
 	}
 
-	if roleEntry != nil {
-		return logical.ErrorResponse("The specified role already exists"), nil
+	if roleEntry == nil && req.Operation == logical.CreateOperation {
+		roleEntry = &OCIRoleEntry{
+			Role: roleName,
+		}
+	} else if roleEntry == nil {
+		return logical.ErrorResponse("The specified role does not exist"), nil
 	}
 
-	roleEntry = &OCIRoleEntry{
-		Role:    roleName,
-		Version: 1,
-	}
-
-	if description, ok := data.GetOk("description"); ok {
-		roleEntry.Description = description.(string)
-	}
-
-	if add_ocid_list, ok := data.GetOk("add_ocid_list"); ok {
-		roleEntry.OcidList = add_ocid_list.([]string)
+	if ocidList, ok := data.GetOk("ocid_list"); ok {
+		roleEntry.OcidList = ocidList.([]string)
 		if len(roleEntry.OcidList) > MaxOCIDsPerRole {
 			return logical.ErrorResponse("Number of OCIDs for this role exceeds the limit"), nil
 		}
 	}
 
-	var resp logical.Response
-
-	ttl, ok := data.GetOk("ttl")
-	if ok {
-		ttlVal := ttl.(int)
-
-		if ttlVal > DefaultTTLSeconds {
-			return logical.ErrorResponse(fmt.Sprintf("Given ttl of %d seconds should be lesser than %d seconds;", ttlVal, DefaultTTLSeconds)), nil
-		}
-
-		if ttlVal < 0 {
-			return logical.ErrorResponse("ttl cannot be negative"), nil
-		}
-
-		roleEntry.TTL = ttlVal
-	} else {
-		roleEntry.TTL = DefaultTTLSeconds
-	}
-
-	if add_policy_list, ok := data.GetOk("add_policy_list"); ok {
-		roleEntry.PolicyList = add_policy_list.([]string)
-	}
-
-	if err := b.nonLockedSetOCIRole(ctx, req.Storage, roleName, roleEntry); err != nil {
-		return nil, err
-	}
-
-	return &resp, nil
-}
-
-// Update if it already exists
-func (b *backend) pathRoleUpdate(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
-
-	roleName := strings.ToLower(data.Get("role").(string))
-	if roleName == "" {
-		return logical.ErrorResponse("missing role"), nil
-	}
-
-	b.roleMutex.Lock()
-	defer b.roleMutex.Unlock()
-
-	roleEntry, err := b.nonLockedOCIRole(ctx, req.Storage, roleName)
-	if err != nil {
-		return nil, err
-	}
-
-	if roleEntry == nil {
-		return logical.ErrorResponse("The specified role does not exist"), nil
-	} else {
-		roleEntry.Version = roleEntry.Version + 1
-	}
-
-	if description, ok := data.GetOk("description"); ok {
-		roleEntry.Description = description.(string)
-	}
-
-	//Add and Remove the OCIDs
-	ocidMap := sliceToMap(roleEntry.OcidList)
-
-	if add_ocid_list, ok := data.GetOk("add_ocid_list"); ok {
-		addOcidSlice := add_ocid_list.([]string)
-		ocidMap = addSliceToMap(addOcidSlice, ocidMap)
-	}
-
-	if remove_ocid_list, ok := data.GetOk("remove_ocid_list"); ok {
-		removeOcidSlice := remove_ocid_list.([]string)
-		ocidMap = removeSliceFromMap(removeOcidSlice, ocidMap)
-	}
-
-	roleEntry.OcidList = mapToSlice(ocidMap)
-
-	if len(roleEntry.OcidList) > MaxOCIDsPerRole {
-		return logical.ErrorResponse("Number of OCIDs for this role exceeds the limit"), nil
+	if err := roleEntry.ParseTokenFields(req, data); err != nil {
+		return logical.ErrorResponse(err.Error()), logical.ErrInvalidRequest
 	}
 
 	var resp logical.Response
-
-	ttl, ok := data.GetOk("ttl")
-	if ok {
-		ttlVal := ttl.(int)
-
-		if ttlVal > DefaultTTLSeconds {
-			return logical.ErrorResponse(fmt.Sprintf("Given ttl of %d seconds should be lesser than %d seconds;", ttlVal, DefaultTTLSeconds)), nil
-		}
-
-		if ttlVal < 0 {
-			return logical.ErrorResponse("ttl cannot be negative"), nil
-		}
-
-		roleEntry.TTL = ttlVal
-	}
-
-	//Add and Remove the Policies
-	policyMap := sliceToMap(roleEntry.PolicyList)
-
-	if add_policy_list, ok := data.GetOk("add_policy_list"); ok {
-		addPolicySlice := add_policy_list.([]string)
-		policyMap = addSliceToMap(addPolicySlice, policyMap)
-	}
-
-	if remove_policy_list, ok := data.GetOk("remove_policy_list"); ok {
-		removePolicySlice := remove_policy_list.([]string)
-		policyMap = removeSliceFromMap(removePolicySlice, policyMap)
-	}
-
-	roleEntry.PolicyList = mapToSlice(policyMap)
 
 	if err := b.nonLockedSetOCIRole(ctx, req.Storage, roleName, roleEntry); err != nil {
 		return nil, err
@@ -386,34 +247,10 @@ func (b *backend) pathRoleUpdate(ctx context.Context, req *logical.Request, data
 
 // Struct to hold the information associated with an OCI role
 type OCIRoleEntry struct {
-	Role        string   `json:"role" `
-	Description string   `json:"description" `
-	OcidList    []string `json:"ocid_list"`
-	TTL         int      `json:"ttl"`
-	PolicyList  []string `json:"policy_list"`
-	Version     int      `json:"version"`
-}
+	tokenutil.TokenParams
 
-func (r *OCIRoleEntry) ToResponseData() map[string]interface{} {
-	responseData := map[string]interface{}{
-		"role":        r.Role,
-		"description": r.Description,
-		"ocid_list":   r.OcidList,
-		"ttl":         r.TTL,
-		"policy_list": r.PolicyList,
-		"version":     r.Version,
-	}
-
-	convertNilToEmptySlice := func(data map[string]interface{}, field string) {
-		if data[field] == nil || len(data[field].([]string)) == 0 {
-			data[field] = []string{}
-		}
-	}
-
-	convertNilToEmptySlice(responseData, "ocid_list")
-	convertNilToEmptySlice(responseData, "policy_list")
-
-	return responseData
+	Role     string   `json:"role" `
+	OcidList []string `json:"ocid_list"`
 }
 
 const pathRoleSyn = `

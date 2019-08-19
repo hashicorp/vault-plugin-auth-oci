@@ -28,11 +28,11 @@ func TestBackend_PathRoles(t *testing.T) {
 	}
 
 	roleData := map[string]interface{}{
-		"role":            "devrole",
-		"description":     "My dev role",
-		"add_ocid_list":   "ocid1,ocid2",
-		"add_policy_list": "policy1,policy2",
-		"ttl":             1500,
+		"role":           "devrole",
+		"description":    "My dev role",
+		"ocid_list":      "ocid1,ocid2",
+		"token_policies": "policy1,policy2",
+		"token_ttl":      1500,
 	}
 
 	roleReq := &logical.Request{
@@ -68,13 +68,11 @@ func TestBackend_PathRoles(t *testing.T) {
 
 	//now update the roles
 	roleDataUpdate := map[string]interface{}{
-		"role":               "devrole",
-		"description":        "My developer role",
-		"add_ocid_list":      "ocid3",
-		"remove_ocid_list":   "ocid1",
-		"add_policy_list":    "policy1,policy3",
-		"remove_policy_list": "policy4,policy3",
-		"ttl":                1000,
+		"role":           "devrole",
+		"description":    "My developer role",
+		"ocid_list":      "ocid3",
+		"token_policies": "ocid1",
+		"token_ttl":      1000,
 	}
 
 	roleReqUpdate := &logical.Request{

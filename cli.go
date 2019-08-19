@@ -17,8 +17,8 @@ type CLIHandler struct{}
 
 func (h *CLIHandler) Help() string {
 	help := `
-Usage: vault login -method=oci authType=ApiKey 
-       vault login -method=oci authType=InstancePrincipal 
+Usage: vault login -method=oci auth_type=apikey 
+       vault login -method=oci auth_type=instance 
 
   The OCI auth method allows users to authenticate with OCI
   credentials. The OCI credentials may be specified in a number of ways,
@@ -33,12 +33,12 @@ Usage: vault login -method=oci authType=ApiKey
 		First create a configuration file as explained in https://docs.us-phoenix-1.oraclecloud.com/Content/API/Concepts/sdkconfig.htm
 		Then login using the following command:
 
-		$ vault login -method=oci authType=ApiKey role=<RoleName>
+		$ vault login -method=oci auth_type=apikey role=<RoleName>
 
-  Authenticate using instance principal:
+  Authenticate using Instance Principal:
 		https://docs.cloud.oracle.com/iaas/Content/Identity/Tasks/callingservicesfrominstances.htm
 		
-		$ vault login -method=oci authType=InstancePrincipal role=<RoleName>
+		$ vault login -method=oci auth_type=instance role=<RoleName>
 
 Configuration:
   authType=<string>
@@ -64,7 +64,7 @@ func (h *CLIHandler) Auth(c *api.Client, m map[string]string) (*api.Secret, erro
 		return nil, err
 	}
 
-	//Now try to login
+	// Now try to login
 	secret, err := c.Logical().Write(path, loginData)
 	if err != nil {
 		return nil, err
@@ -75,19 +75,19 @@ func (h *CLIHandler) Auth(c *api.Client, m map[string]string) (*api.Secret, erro
 // CreateLoginData creates the interface required for a login request, signed using the corresponding OCI Identity Principal
 func CreateLoginData(clientAddress string, m map[string]string, path string) (map[string]interface{}, error) {
 
-	authtype, ok := m["authType"]
+	authtype, ok := m["auth_type"]
 	if !ok {
-		return nil, fmt.Errorf("enter the authType")
+		return nil, fmt.Errorf("Enter the auth_type")
 	}
 
 	switch strings.ToLower(authtype) {
-	case "ip", "instanceprincipal":
+	case "ip", "instance":
 		return createLoginDataForInstancePrincipal(clientAddress, path)
 	case "ak", "apikey":
 		return createLoginDataForApiKeys(clientAddress, path)
 	}
 
-	return nil, fmt.Errorf("unknown authType")
+	return nil, fmt.Errorf("Unknown authType")
 }
 
 func createLoginDataForApiKeys(clientAddress string, path string) (map[string]interface{}, error) {
@@ -117,7 +117,7 @@ func createLoginDataForInstancePrincipal(clientAddress string, path string) (map
 
 func createFinalLoginData(clientAddress string, ociClient *OciClient, path string) (map[string]interface{}, error) {
 
-	ociClient.SetHost(clientAddress)
+	ociClient.Host = clientAddress
 	request, err := ociClient.ConstructLoginRequest(path)
 	if err != nil {
 		return nil, err
@@ -129,10 +129,10 @@ func createFinalLoginData(clientAddress string, ociClient *OciClient, path strin
 	}
 	request.Host = clientURL.Host
 
-	//serialize the request
+	// serialize the request
 	serializedRequest := serializeRequest(request)
 
-	//pack it into loginData
+	// pack it into loginData
 	loginData := make(map[string]interface{})
 	loginData["requestHeaders"] = serializedRequest
 

@@ -21,13 +21,12 @@ const (
 func createHomeTenancy(t *testing.T, backendConfig *logical.BackendConfig, backend logical.Backend) {
 	var resp *logical.Response
 	var err error
-	configPath := "config/" + HomeTenancyIdConfigName
+	configPath := "config"
 
 	homeTenancyId := os.Getenv("HOME_TENANCY_ID")
 
 	configData := map[string]interface{}{
-		"configName":  HomeTenancyIdConfigName,
-		"configValue": homeTenancyId,
+		HomeTenancyIdConfigName: homeTenancyId,
 	}
 
 	configReq := &logical.Request{
@@ -71,11 +70,11 @@ func initTest(t *testing.T) (backend logical.Backend, config *logical.BackendCon
 	}
 	//Create the devRole
 	devRoleData := map[string]interface{}{
-		"role":            DevRole,
-		"description":     DevRole + " description",
-		"add_ocid_list":   roleOcidList,
-		"add_policy_list": "policy1,policy2",
-		"ttl":             1500,
+		"role":           DevRole,
+		"description":    DevRole + " description",
+		"ocid_list":      roleOcidList,
+		"token_policies": "policy1,policy2",
+		"token_ttl":      1500,
 	}
 
 	err = createRole(devRoleData, DevRole, backend, config)
@@ -85,11 +84,11 @@ func initTest(t *testing.T) (backend logical.Backend, config *logical.BackendCon
 
 	//Create the opsRole
 	opsRoleData := map[string]interface{}{
-		"role":            OpsRole,
-		"description":     OpsRole + " description",
-		"add_ocid_list":   "",
-		"add_policy_list": "policy3",
-		"ttl":             1000,
+		"role":           OpsRole,
+		"description":    OpsRole + " description",
+		"ocid_list":      "",
+		"token_policies": "policy3",
+		"token_ttl":      1000,
 	}
 
 	err = createRole(opsRoleData, OpsRole, backend, config)
@@ -99,11 +98,11 @@ func initTest(t *testing.T) (backend logical.Backend, config *logical.BackendCon
 
 	//Create the knowledgeWorkerRole
 	knowledgeWorkerRole := map[string]interface{}{
-		"role":            KnowledgeWorkerRole,
-		"description":     KnowledgeWorkerRole + " description",
-		"add_ocid_list":   roleOcidList,
-		"add_policy_list": "policy1,policy5",
-		"ttl":             1000,
+		"role":           KnowledgeWorkerRole,
+		"description":    KnowledgeWorkerRole + " description",
+		"ocid_list":      roleOcidList,
+		"token_policies": "policy1,policy5",
+		"token_ttl":      1000,
 	}
 
 	err = createRole(knowledgeWorkerRole, KnowledgeWorkerRole, backend, config)
@@ -138,13 +137,13 @@ func TestBackEnd_ValidateUserApiKeyLogin(t *testing.T) {
 	}
 
 	cmdMap := map[string]string{
-		"authType": "apikey",
+		"auth_type": "apikey",
 		"role":     DevRole,
 	}
 	makeRequestAndValidateResponse(t, cmdMap, false, 1500*time.Second, []string{"policy1", "policy2"})
 
 	cmdMap = map[string]string{
-		"authType": "apikey",
+		"auth_type": "apikey",
 		"role":     KnowledgeWorkerRole,
 	}
 	makeRequestAndValidateResponse(t, cmdMap, false, 1000*time.Second, []string{"policy1", "policy5"})
@@ -158,7 +157,7 @@ func TestBackEnd_ValidateUserApiKeyLoginNotInRole(t *testing.T) {
 	}
 
 	cmdMap := map[string]string{
-		"authType": "apikey",
+		"auth_type": "apikey",
 		"role":     OpsRole,
 	}
 	makeRequestAndValidateResponse(t, cmdMap, true, 1500*time.Second, []string{})
@@ -172,7 +171,7 @@ func TestBackEnd_ValidateUserApiKeyLoginNonExistentRole(t *testing.T) {
 	}
 
 	cmdMap := map[string]string{
-		"authType": "apikey",
+		"auth_type": "apikey",
 		"role":     NonExistentRole,
 	}
 	makeRequestAndValidateResponse(t, cmdMap, true, 1500*time.Second, []string{})
@@ -186,13 +185,13 @@ func TestBackEnd_ValidateInstancePrincipalLogin(t *testing.T) {
 	}
 
 	cmdMap := map[string]string{
-		"authType": "ip",
+		"auth_type": "ip",
 		"role":     DevRole,
 	}
 	makeRequestAndValidateResponse(t, cmdMap, false, 1500*time.Second, []string{"policy1", "policy2"})
 
 	cmdMap = map[string]string{
-		"authType": "ip",
+		"auth_type": "ip",
 		"role":     KnowledgeWorkerRole,
 	}
 	makeRequestAndValidateResponse(t, cmdMap, false, 1000*time.Second, []string{"policy1", "policy5"})
@@ -206,7 +205,7 @@ func TestBackEnd_ValidateInstancePrincipalLoginNotInRole(t *testing.T) {
 	}
 
 	cmdMap := map[string]string{
-		"authType": "ip",
+		"auth_type": "ip",
 		"role":     OpsRole,
 	}
 	makeRequestAndValidateResponse(t, cmdMap, true, 1500*time.Second, []string{})
@@ -220,7 +219,7 @@ func TestBackEnd_ValidateInstancePrincipalLoginNonExistentRole(t *testing.T) {
 	}
 
 	cmdMap := map[string]string{
-		"authType": "ip",
+		"auth_type": "ip",
 		"role":     NonExistentRole,
 	}
 	makeRequestAndValidateResponse(t, cmdMap, true, 1500*time.Second, []string{})

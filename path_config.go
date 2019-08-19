@@ -12,32 +12,15 @@ import (
 //These constants store the configuration keys
 const (
 	HomeTenancyIdConfigName = "homeTenancyId"
-	BaseConfigPath          = "config/"
 )
-
-var allowedConfigNamesForCreate = map[string]string{
-	HomeTenancyIdConfigName: HomeTenancyIdConfigName,
-}
-
-var allowedConfigNamesForUpdate = map[string]string{
-	HomeTenancyIdConfigName: HomeTenancyIdConfigName,
-}
-
-var allowedConfigNamesForDelete = map[string]string{
-	HomeTenancyIdConfigName: HomeTenancyIdConfigName,
-}
 
 func pathConfig(b *backend) *framework.Path {
 	return &framework.Path{
-		Pattern: BaseConfigPath + framework.GenericNameRegex("configName"),
+		Pattern: "config",
 		Fields: map[string]*framework.FieldSchema{
-			"configName": {
+			HomeTenancyIdConfigName: {
 				Type:        framework.TypeString,
-				Description: "Name of the config.",
-			},
-			"configValue": {
-				Type:        framework.TypeString,
-				Description: "Value of the config.",
+				Description: "The tenancy id of the account.",
 			},
 		},
 
@@ -55,23 +38,10 @@ func pathConfig(b *backend) *framework.Path {
 	}
 }
 
-func pathListConfigs(b *backend) *framework.Path {
-	return &framework.Path{
-		Pattern: BaseConfigPath + "?",
-
-		Callbacks: map[logical.Operation]framework.OperationFunc{
-			logical.ListOperation: b.pathConfigList,
-		},
-
-		HelpSynopsis:    pathListConfigsHelpSyn,
-		HelpDescription: pathListConfigsHelpDesc,
-	}
-}
-
 // Establishes dichotomy of request operation between CreateOperation and UpdateOperation.
 // Returning 'true' forces an UpdateOperation, CreateOperation otherwise.
 func (b *backend) pathConfigExistenceCheck(ctx context.Context, req *logical.Request, data *framework.FieldData) (bool, error) {
-	entry, err := b.lockedOCIConfig(ctx, req.Storage, data.Get("configName").(string))
+	entry, err := b.lockedOCIConfig(ctx, req.Storage)
 	if err != nil {
 		return false, err
 	}
@@ -80,13 +50,9 @@ func (b *backend) pathConfigExistenceCheck(ctx context.Context, req *logical.Req
 
 // lockedOCIConfig returns the properties set on the given config. This method
 // acquires the read lock before reading the config from the storage.
-func (b *backend) lockedOCIConfig(ctx context.Context, s logical.Storage, configName string) (*OCIConfigEntry, error) {
-	if strings.TrimSpace(configName) == "" {
-		return nil, fmt.Errorf("missing configName")
-	}
-
+func (b *backend) lockedOCIConfig(ctx context.Context, s logical.Storage) (*OCIConfigEntry, error) {
 	b.configMutex.RLock()
-	configEntry, err := b.nonLockedOCIConfig(ctx, s, configName)
+	configEntry, err := b.nonLockedOCIConfig(ctx, s)
 	// we manually unlock rather than defer the unlock because we might need to grab
 	// a read/write lock in the upgrade path
 	b.configMutex.RUnlock()
@@ -101,11 +67,7 @@ func (b *backend) lockedOCIConfig(ctx context.Context, s logical.Storage, config
 
 // lockedSetOCIConfig creates or updates a config in the storage. This method
 // acquires the write lock before creating or updating the config at the storage.
-func (b *backend) lockedSetOCIConfig(ctx context.Context, s logical.Storage, configName string, configEntry *OCIConfigEntry) error {
-	if strings.TrimSpace(configName) == "" {
-		return fmt.Errorf("missing configName")
-	}
-
+func (b *backend) lockedSetOCIConfig(ctx context.Context, s logical.Storage, configEntry *OCIConfigEntry) error {
 	if configEntry == nil {
 		return fmt.Errorf("config is not found")
 	}
@@ -113,23 +75,18 @@ func (b *backend) lockedSetOCIConfig(ctx context.Context, s logical.Storage, con
 	b.configMutex.Lock()
 	defer b.configMutex.Unlock()
 
-	return b.nonLockedSetOCIConfig(ctx, s, configName, configEntry)
+	return b.nonLockedSetOCIConfig(ctx, s, configEntry)
 }
 
 // nonLockedSetOCIConfig creates or updates a config in the storage. This method
 // does not acquire the write lock before writing the config to the storage. If
 // locking is desired, use lockedSetOCIConfig instead.
-func (b *backend) nonLockedSetOCIConfig(ctx context.Context, s logical.Storage, configName string,
-	configEntry *OCIConfigEntry) error {
-	if configName == "" {
-		return fmt.Errorf("missing configName")
-	}
-
+func (b *backend) nonLockedSetOCIConfig(ctx context.Context, s logical.Storage, configEntry *OCIConfigEntry) error {
 	if configEntry == nil {
 		return fmt.Errorf("config is not found")
 	}
 
-	entry, err := logical.StorageEntryJSON(BaseConfigPath+configName, configEntry)
+	entry, err := logical.StorageEntryJSON("config", configEntry)
 	if err != nil {
 		return err
 	}
@@ -147,12 +104,8 @@ func (b *backend) nonLockedSetOCIConfig(ctx context.Context, s logical.Storage, 
 // This method also does NOT check to see if a config upgrade is required. It is
 // the responsibility of the caller to check if a config upgrade is required and,
 // if so, to upgrade the config
-func (b *backend) nonLockedOCIConfig(ctx context.Context, s logical.Storage, configName string) (*OCIConfigEntry, error) {
-	if strings.TrimSpace(configName) == "" {
-		return nil, fmt.Errorf("missing configName")
-	}
-
-	entry, err := s.Get(ctx, BaseConfigPath+configName)
+func (b *backend) nonLockedOCIConfig(ctx context.Context, s logical.Storage) (*OCIConfigEntry, error) {
+	entry, err := s.Get(ctx, "config")
 	if err != nil {
 		return nil, err
 	}
@@ -168,19 +121,8 @@ func (b *backend) nonLockedOCIConfig(ctx context.Context, s logical.Storage, con
 	return &result, nil
 }
 
-func (b *backend) pathConfigList(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
-	b.configMutex.RLock()
-	defer b.configMutex.RUnlock()
-
-	configs, err := req.Storage.List(ctx, BaseConfigPath)
-	if err != nil {
-		return nil, err
-	}
-	return logical.ListResponse(configs), nil
-}
-
 func (b *backend) pathConfigRead(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
-	configEntry, err := b.lockedOCIConfig(ctx, req.Storage, data.Get("configName").(string))
+	configEntry, err := b.lockedOCIConfig(ctx, req.Storage)
 	if err != nil {
 		return nil, err
 	}
@@ -196,25 +138,15 @@ func (b *backend) pathConfigRead(ctx context.Context, req *logical.Request, data
 // create a Config
 func (b *backend) pathConfigCreate(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 
-	configName := data.Get("configName").(string)
-	if strings.TrimSpace(configName) == "" {
-		return logical.ErrorResponse("missing configName"), nil
-	}
-
-	_, ok := allowedConfigNamesForCreate[configName]
-	if ok == false {
-		return logical.ErrorResponse(fmt.Sprintf("%s The specified configName is not allowed to be created.", configName)), nil
-	}
-
-	configValue := data.Get("configValue").(string)
-	if strings.TrimSpace(configValue) == "" {
-		return logical.ErrorResponse("missing configValue"), nil
+	homeTenancyId := data.Get(HomeTenancyIdConfigName).(string)
+	if strings.TrimSpace(homeTenancyId) == "" {
+		return logical.ErrorResponse("missing homeTenancyId"), nil
 	}
 
 	b.configMutex.Lock()
 	defer b.configMutex.Unlock()
 
-	configEntry, err := b.nonLockedOCIConfig(ctx, req.Storage, configName)
+	configEntry, err := b.nonLockedOCIConfig(ctx, req.Storage)
 	if err != nil {
 		return nil, err
 	}
@@ -224,11 +156,10 @@ func (b *backend) pathConfigCreate(ctx context.Context, req *logical.Request, da
 	}
 
 	configEntry = &OCIConfigEntry{
-		ConfigName:  configName,
-		ConfigValue: configValue,
+		HomeTenancyId: homeTenancyId,
 	}
 
-	if err := b.nonLockedSetOCIConfig(ctx, req.Storage, configName, configEntry); err != nil {
+	if err := b.nonLockedSetOCIConfig(ctx, req.Storage, configEntry); err != nil {
 		return nil, err
 	}
 
@@ -239,20 +170,16 @@ func (b *backend) pathConfigCreate(ctx context.Context, req *logical.Request, da
 
 // update a Config
 func (b *backend) pathConfigUpdate(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
-	configName := data.Get("configName").(string)
-	if strings.TrimSpace(configName) == "" {
-		return logical.ErrorResponse("missing configName"), nil
-	}
 
-	_, ok := allowedConfigNamesForUpdate[configName]
-	if ok == false {
-		return logical.ErrorResponse(fmt.Sprintf("%s The specified configName is not allowed to be updated.", configName)), nil
+	homeTenancyId := data.Get(HomeTenancyIdConfigName).(string)
+	if strings.TrimSpace(homeTenancyId) == "" {
+		return logical.ErrorResponse("missing homeTenancyId"), nil
 	}
 
 	b.configMutex.Lock()
 	defer b.configMutex.Unlock()
 
-	configEntry, err := b.nonLockedOCIConfig(ctx, req.Storage, configName)
+	configEntry, err := b.nonLockedOCIConfig(ctx, req.Storage)
 	if err != nil {
 		return nil, err
 	}
@@ -261,14 +188,9 @@ func (b *backend) pathConfigUpdate(ctx context.Context, req *logical.Request, da
 		return logical.ErrorResponse("The specified config does not exist"), nil
 	}
 
-	configValue := data.Get("configValue").(string)
-	if strings.TrimSpace(configValue) == "" {
-		return logical.ErrorResponse("missing configValue"), nil
-	}
+	configEntry.HomeTenancyId = homeTenancyId
 
-	configEntry.ConfigValue = configValue
-
-	if err := b.nonLockedSetOCIConfig(ctx, req.Storage, configName, configEntry); err != nil {
+	if err := b.nonLockedSetOCIConfig(ctx, req.Storage, configEntry); err != nil {
 		return nil, err
 	}
 
@@ -278,54 +200,33 @@ func (b *backend) pathConfigUpdate(ctx context.Context, req *logical.Request, da
 
 // delete a Config
 func (b *backend) pathConfigDelete(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
-	configName := data.Get("configName").(string)
-	if strings.TrimSpace(configName) == "" {
-		return logical.ErrorResponse("missing configName"), nil
-	}
-
-	_, ok := allowedConfigNamesForDelete[configName]
-	if ok == false {
-		return logical.ErrorResponse(fmt.Sprintf("%s The specified configName is not allowed to be deleted.", configName)), nil
-	}
-
 	b.configMutex.Lock()
 	defer b.configMutex.Unlock()
 
-	return nil, req.Storage.Delete(ctx, BaseConfigPath+configName)
+	return nil, req.Storage.Delete(ctx, "config")
 }
 
 // Struct to hold the information associated with an OCI config
 type OCIConfigEntry struct {
-	ConfigName  string `json:"configName" `
-	ConfigValue string `json:"configValue" `
+	HomeTenancyId string `json:"homeTenancyId" `
 }
 
 func (r *OCIConfigEntry) ToResponseData() map[string]interface{} {
 	responseData := map[string]interface{}{
-		"configName":  r.ConfigName,
-		"configValue": r.ConfigValue,
+		"homeTenancyId": r.HomeTenancyId,
 	}
 
 	return responseData
 }
 
 const pathConfigSyn = `
-Create a config. Allowed values are:
-homeTenancyId
-
-Example:
-
-vault write /auth/oci/homeTenancyId configValue=myocid
+Manages the configuration for the Vault Auth Plugin.
 `
 
 const pathConfigDesc = `
-Create a config.
-`
+The homeTenancyId configuration is the Tenant OCID of your OCI Account. Only login requests from entities present in this tenant id are accepted.
 
-const pathListConfigsHelpSyn = `
-Lists all the configs that are registered with Vault.
-`
+Example:
 
-const pathListConfigsHelpDesc = `
-Configs will be listed by their respective config names.
+vault write /auth/oci/config homeTenancyId=myocid
 `
