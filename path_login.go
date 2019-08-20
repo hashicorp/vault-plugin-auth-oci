@@ -116,7 +116,7 @@ func (b *backend) pathLoginUpdate(ctx context.Context, req *logical.Request, dat
 	}
 
 	//Validate that the role exists
-	roleEntry, err := b.nonLockedOCIRole(ctx, req.Storage, roleName)
+	roleEntry, err := b.getOCIRole(ctx, req.Storage, roleName)
 	if err != nil {
 		return unauthorizedLogicalResponse(req, b.Logger(), err)
 	}

@@ -64,55 +64,15 @@ func pathListRoles(b *backend) *framework.Path {
 // Establishes dichotomy of request operation between CreateOperation and UpdateOperation.
 // Returning 'true' forces an UpdateOperation, CreateOperation otherwise.
 func (b *backend) pathRoleExistenceCheck(ctx context.Context, req *logical.Request, data *framework.FieldData) (bool, error) {
-	entry, err := b.lockedOCIRole(ctx, req.Storage, data.Get("role").(string))
+	entry, err := b.getOCIRole(ctx, req.Storage, data.Get("role").(string))
 	if err != nil {
 		return false, err
 	}
 	return entry != nil, nil
 }
 
-// lockedOCIRole returns the properties set on the given role. This method
-// acquires the read lock before reading the role from the storage.
-func (b *backend) lockedOCIRole(ctx context.Context, s logical.Storage, roleName string) (*OCIRoleEntry, error) {
-	if roleName == "" {
-		return nil, fmt.Errorf("missing role name")
-	}
-
-	b.roleMutex.RLock()
-	roleEntry, err := b.nonLockedOCIRole(ctx, s, roleName)
-	// we manually unlock rather than defer the unlock because we might need to grab
-	// a read/write lock in the upgrade path
-	b.roleMutex.RUnlock()
-	if err != nil {
-		return nil, err
-	}
-	if roleEntry == nil {
-		return nil, nil
-	}
-	return roleEntry, nil
-}
-
-// lockedSetOCIRole creates or updates a role in the storage. This method
-// acquires the write lock before creating or updating the role at the storage.
-func (b *backend) lockedSetOCIRole(ctx context.Context, s logical.Storage, roleName string, roleEntry *OCIRoleEntry) error {
-	if roleName == "" {
-		return fmt.Errorf("missing role name")
-	}
-
-	if roleEntry == nil {
-		return fmt.Errorf("nil role entry")
-	}
-
-	b.roleMutex.Lock()
-	defer b.roleMutex.Unlock()
-
-	return b.nonLockedSetOCIRole(ctx, s, roleName, roleEntry)
-}
-
-// nonLockedSetOCIRole creates or updates a role in the storage. This method
-// does not acquire the write lock before reading the role from the storage. If
-// locking is desired, use lockedSetOCIRole instead.
-func (b *backend) nonLockedSetOCIRole(ctx context.Context, s logical.Storage, roleName string,
+// setOciRole creates or updates a role in the storage.
+func (b *backend) setOCIRole(ctx context.Context, s logical.Storage, roleName string,
 	roleEntry *OCIRoleEntry) error {
 	if roleName == "" {
 		return fmt.Errorf("missing role name")
@@ -134,13 +94,11 @@ func (b *backend) nonLockedSetOCIRole(ctx context.Context, s logical.Storage, ro
 	return nil
 }
 
-// nonLockedOCIRole returns the properties set on the given role. This method
-// does not acquire the read lock before reading the role from the storage. If
-// locking is desired, use lockedOCIRole instead.
-// This method also does NOT check to see if a role upgrade is required. It is
+// getOCIRole returns the properties set on the given role.
+// This method does NOT check to see if a role upgrade is required. It is
 // the responsibility of the caller to check if a role upgrade is required and,
 // if so, to upgrade the role
-func (b *backend) nonLockedOCIRole(ctx context.Context, s logical.Storage, roleName string) (*OCIRoleEntry, error) {
+func (b *backend) getOCIRole(ctx context.Context, s logical.Storage, roleName string) (*OCIRoleEntry, error) {
 	if roleName == "" {
 		return nil, fmt.Errorf("missing role name")
 	}
@@ -176,7 +134,7 @@ func (b *backend) pathRoleList(ctx context.Context, req *logical.Request, data *
 }
 
 func (b *backend) pathRoleRead(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
-	roleEntry, err := b.lockedOCIRole(ctx, req.Storage, data.Get("role").(string))
+	roleEntry, err := b.getOCIRole(ctx, req.Storage, data.Get("role").(string))
 	if err != nil {
 		return nil, err
 	}
@@ -186,16 +144,8 @@ func (b *backend) pathRoleRead(ctx context.Context, req *logical.Request, data *
 
 	responseData := map[string]interface{}{
 		"role":      roleEntry.Role,
-		"ocid_list": roleEntry.OcidList,
+		"ocid_list": append([]string{}, roleEntry.OcidList...),
 	}
-
-	convertNilToEmptySlice := func(data map[string]interface{}, field string) {
-		if data[field] == nil || len(data[field].([]string)) == 0 {
-			data[field] = []string{}
-		}
-	}
-
-	convertNilToEmptySlice(responseData, "ocid_list")
 
 	roleEntry.PopulateTokenData(responseData)
 
@@ -209,10 +159,7 @@ func (b *backend) pathRoleCreateUpdate(ctx context.Context, req *logical.Request
 
 	roleName := data.Get("role").(string)
 
-	b.roleMutex.Lock()
-	defer b.roleMutex.Unlock()
-
-	roleEntry, err := b.nonLockedOCIRole(ctx, req.Storage, roleName)
+	roleEntry, err := b.getOCIRole(ctx, req.Storage, roleName)
 	if err != nil {
 		return nil, err
 	}
@@ -238,7 +185,7 @@ func (b *backend) pathRoleCreateUpdate(ctx context.Context, req *logical.Request
 
 	var resp logical.Response
 
-	if err := b.nonLockedSetOCIRole(ctx, req.Storage, roleName, roleEntry); err != nil {
+	if err := b.setOCIRole(ctx, req.Storage, roleName, roleEntry); err != nil {
 		return nil, err
 	}
 
