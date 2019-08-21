@@ -41,10 +41,10 @@ Usage: vault login -method=oci auth_type=apikey
 		$ vault login -method=oci auth_type=instance role=<RoleName>
 
 Configuration:
-  authType=<string>
+  auth_type=<string>
       Enter one of following: 
-		ApiKey (or) ak		
-		InstancePrincipal (or) ip
+		apikey (or) ak		
+		instance (or) ip
 `
 	return strings.TrimSpace(help)
 }
@@ -52,7 +52,7 @@ Configuration:
 func (h *CLIHandler) Auth(c *api.Client, m map[string]string) (*api.Secret, error) {
 	role, ok := m["role"]
 	if !ok {
-		return nil, fmt.Errorf("enter the role")
+		return nil, fmt.Errorf("Enter the role")
 	}
 	role = strings.ToLower(role)
 
@@ -87,7 +87,7 @@ func CreateLoginData(clientAddress string, m map[string]string, path string) (ma
 		return createLoginDataForApiKeys(clientAddress, path)
 	}
 
-	return nil, fmt.Errorf("Unknown authType")
+	return nil, fmt.Errorf("Unknown auth_type")
 }
 
 func createLoginDataForApiKeys(clientAddress string, path string) (map[string]interface{}, error) {

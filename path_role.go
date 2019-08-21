@@ -143,7 +143,6 @@ func (b *backend) pathRoleRead(ctx context.Context, req *logical.Request, data *
 	}
 
 	responseData := map[string]interface{}{
-		"role":      roleEntry.Role,
 		"ocid_list": append([]string{}, roleEntry.OcidList...),
 	}
 
@@ -165,9 +164,7 @@ func (b *backend) pathRoleCreateUpdate(ctx context.Context, req *logical.Request
 	}
 
 	if roleEntry == nil && req.Operation == logical.CreateOperation {
-		roleEntry = &OCIRoleEntry{
-			Role: roleName,
-		}
+		roleEntry = &OCIRoleEntry{}
 	} else if roleEntry == nil {
 		return logical.ErrorResponse("The specified role does not exist"), nil
 	}
@@ -196,7 +193,6 @@ func (b *backend) pathRoleCreateUpdate(ctx context.Context, req *logical.Request
 type OCIRoleEntry struct {
 	tokenutil.TokenParams
 
-	Role     string   `json:"role" `
 	OcidList []string `json:"ocid_list"`
 }
 

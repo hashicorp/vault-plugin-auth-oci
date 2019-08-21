@@ -188,7 +188,7 @@ func (b *backend) pathLoginUpdate(ctx context.Context, req *logical.Request, dat
 
 func (b *backend) validateHomeTenancy(ctx context.Context, req *logical.Request, homeTenancyId string) error {
 
-	configEntry, err := b.nonLockedOCIConfig(ctx, req.Storage)
+	configEntry, err := b.getOCIConfig(ctx, req.Storage)
 	if err != nil {
 		return err
 	}

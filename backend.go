@@ -24,9 +24,6 @@ func Factory(ctx context.Context, conf *logical.BackendConfig) (logical.Backend,
 type backend struct {
 	*framework.Backend
 
-	// Lock to make changes to config entries
-	configMutex sync.RWMutex
-
 	// Lock to make changes to authClient entries
 	authClientMutex sync.RWMutex
 

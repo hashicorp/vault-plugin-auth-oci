@@ -28,7 +28,6 @@ func TestBackend_PathRoles(t *testing.T) {
 	}
 
 	roleData := map[string]interface{}{
-		"role":           "devrole",
 		"description":    "My dev role",
 		"ocid_list":      "ocid1,ocid2",
 		"token_policies": "policy1,policy2",
@@ -68,7 +67,6 @@ func TestBackend_PathRoles(t *testing.T) {
 
 	//now update the roles
 	roleDataUpdate := map[string]interface{}{
-		"role":           "devrole",
 		"description":    "My developer role",
 		"ocid_list":      "ocid3",
 		"token_policies": "ocid1",

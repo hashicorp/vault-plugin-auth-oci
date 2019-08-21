@@ -70,7 +70,6 @@ func initTest(t *testing.T) (backend logical.Backend, config *logical.BackendCon
 	}
 	//Create the devRole
 	devRoleData := map[string]interface{}{
-		"role":           DevRole,
 		"description":    DevRole + " description",
 		"ocid_list":      roleOcidList,
 		"token_policies": "policy1,policy2",
@@ -84,7 +83,6 @@ func initTest(t *testing.T) (backend logical.Backend, config *logical.BackendCon
 
 	//Create the opsRole
 	opsRoleData := map[string]interface{}{
-		"role":           OpsRole,
 		"description":    OpsRole + " description",
 		"ocid_list":      "",
 		"token_policies": "policy3",
@@ -98,7 +96,6 @@ func initTest(t *testing.T) (backend logical.Backend, config *logical.BackendCon
 
 	//Create the knowledgeWorkerRole
 	knowledgeWorkerRole := map[string]interface{}{
-		"role":           KnowledgeWorkerRole,
 		"description":    KnowledgeWorkerRole + " description",
 		"ocid_list":      roleOcidList,
 		"token_policies": "policy1,policy5",
