@@ -58,7 +58,7 @@ func (b *backend) pathLoginUpdate(ctx context.Context, req *logical.Request, dat
 	}
 	roleName := role.(string)
 
-	b.Logger().Debug(req.ID, "pathLoginUpdate roleName", roleName)
+	b.Logger().Trace(req.ID, "pathLoginUpdate roleName", roleName)
 
 	// Validate that the role exists
 	roleEntry, err := b.getOCIRole(ctx, req.Storage, roleName)
@@ -83,7 +83,7 @@ func (b *backend) pathLoginUpdate(ctx context.Context, req *logical.Request, dat
 	if err != nil {
 		return unauthorizedLogicalResponse(req, b.Logger(), err)
 	}
-	b.Logger().Debug(req.ID, "Method:", method, "targetUrl:", targetUrl)
+	b.Logger().Trace(req.ID, "Method:", method, "targetUrl:", targetUrl)
 
 	authenticateClientDetails := AuthenticateClientDetails{
 		RequestHeaders: authenticateRequestHeaders,
@@ -121,7 +121,7 @@ func (b *backend) pathLoginUpdate(ctx context.Context, req *logical.Request, dat
 		return unauthorizedLogicalResponse(req, b.Logger(), err)
 	}
 
-	b.Logger().Debug("Authentication ok", "Method:", method, "targetUrl:", targetUrl, "id", req.ID)
+	b.Logger().Trace("Authentication ok", "Method:", method, "targetUrl:", targetUrl, "id", req.ID)
 
 	// Validate the home tenancy
 	err = b.validateHomeTenancy(ctx, req, *authenticateClientResponse.Principal.TenantId)
@@ -164,7 +164,7 @@ func (b *backend) pathLoginUpdate(ctx context.Context, req *logical.Request, dat
 		return unauthorizedLogicalResponse(req, b.Logger(), fmt.Errorf("Entity not a part of any of the Role OCIDs"))
 	}
 
-	b.Logger().Debug("Login ok", "Method:", method, "targetUrl:", targetUrl, "id", req.ID)
+	b.Logger().Trace("Login ok", "Method:", method, "targetUrl:", targetUrl, "id", req.ID)
 
 	// Return the response
 	auth := &logical.Auth{
@@ -209,7 +209,7 @@ func (b *backend) validateHomeTenancy(ctx context.Context, req *logical.Request,
 }
 
 func unauthorizedLogicalResponse(req *logical.Request, logger log.Logger, err error) (*logical.Response, error) {
-	logger.Debug(req.ID, ": Failed with error:", err)
+	logger.Trace(req.ID, ": Failed with error:", err)
 	return logical.RespondWithStatusCode(nil, req, http.StatusUnauthorized)
 }
 
