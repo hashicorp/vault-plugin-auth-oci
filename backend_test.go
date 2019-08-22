@@ -68,7 +68,7 @@ func initTest(t *testing.T) (backend logical.Backend, config *logical.BackendCon
 	if roleOcidList == "" {
 		return nil, nil, fmt.Errorf("ROLE_OCID_LIST environment variable is empty")
 	}
-	//Create the devRole
+	// Create the devRole
 	devRoleData := map[string]interface{}{
 		"description":    DevRole + " description",
 		"ocid_list":      roleOcidList,
@@ -81,7 +81,7 @@ func initTest(t *testing.T) (backend logical.Backend, config *logical.BackendCon
 		return
 	}
 
-	//Create the opsRole
+	// Create the opsRole
 	opsRoleData := map[string]interface{}{
 		"description":    OpsRole + " description",
 		"ocid_list":      "",
@@ -94,7 +94,7 @@ func initTest(t *testing.T) (backend logical.Backend, config *logical.BackendCon
 		return
 	}
 
-	//Create the knowledgeWorkerRole
+	// Create the knowledgeWorkerRole
 	knowledgeWorkerRole := map[string]interface{}{
 		"description":    KnowledgeWorkerRole + " description",
 		"ocid_list":      roleOcidList,

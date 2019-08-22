@@ -44,7 +44,7 @@ func TestBackend_PathConfig(t *testing.T) {
 		t.Fatalf("Config creation failed. resp:%#v\n err:%v", resp, err)
 	}
 
-	//now read the config
+	// now read the config
 	resp, err = b.HandleRequest(context.Background(), &logical.Request{
 		Operation: logical.ReadOperation,
 		Path:      configReq.Path,
@@ -54,7 +54,7 @@ func TestBackend_PathConfig(t *testing.T) {
 		t.Fatalf("Read config failed. resp:%#v\n err:%v", resp, err)
 	}
 
-	//now try to update the config (should pass)
+	// now try to update the config (should pass)
 	configUpdate := map[string]interface{}{
 		HomeTenancyIdConfigName: "ocid1.tenancy.oc2..dummy",
 	}
@@ -75,7 +75,7 @@ func TestBackend_PathConfig(t *testing.T) {
 		t.Fatalf("Config update failed.")
 	}
 
-	//now try to delete the config
+	// now try to delete the config
 	resp, err = b.HandleRequest(context.Background(), &logical.Request{
 		Operation: logical.DeleteOperation,
 		Path:      configPath,

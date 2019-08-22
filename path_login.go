@@ -31,7 +31,7 @@ func pathLogin(b *backend) *framework.Path {
 	return &framework.Path{
 		Pattern: "login/" + framework.GenericNameRegex("role"),
 		Fields: map[string]*framework.FieldSchema{
-			"requestHeaders": {
+			"request_headers": {
 				Type:        framework.TypeHeader,
 				Description: `The signed headers of the client`,
 			},
@@ -51,7 +51,7 @@ func pathLogin(b *backend) *framework.Path {
 
 func (b *backend) pathLoginUpdate(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 
-	//Validate the role
+	// Validate the role
 	role, ok := data.GetOk("role")
 	if !ok {
 		return logical.ErrorResponse("Role is not specified"), nil
@@ -60,10 +60,24 @@ func (b *backend) pathLoginUpdate(ctx context.Context, req *logical.Request, dat
 
 	b.Logger().Debug(req.ID, "pathLoginUpdate roleName", roleName)
 
-	//Parse the authentication headers
-	authenticateRequestHeaders := data.Get("requestHeaders").(http.Header)
+	// Validate that the role exists
+	roleEntry, err := b.getOCIRole(ctx, req.Storage, roleName)
+	if err != nil {
+		return unauthorizedLogicalResponse(req, b.Logger(), err)
+	}
 
-	//Find the targetUrl and Method
+	if roleEntry == nil {
+		return unauthorizedLogicalResponse(req, b.Logger(), fmt.Errorf("Role is not found"))
+	}
+
+	// Parse the authentication headers
+	requestHeaders := data.Get("request_headers")
+	if !ok {
+		return logical.ErrorResponse("request_headers is not specified"), nil
+	}
+	authenticateRequestHeaders := requestHeaders.(http.Header)
+
+	// Find the targetUrl and Method
 	finalLoginPath := PathVersionBase + fmt.Sprintf(PathBaseFormat, roleName)
 	method, targetUrl, err := requestTargetToMethodURL(authenticateRequestHeaders[HdrRequestTarget], PathLoginMethod, finalLoginPath)
 	if err != nil {
@@ -86,7 +100,7 @@ func (b *backend) pathLoginUpdate(ctx context.Context, req *logical.Request, dat
 		requestMetadata,
 	}
 
-	//Authenticate the request with Identity
+	// Authenticate the request with Identity
 	if b.authenticationClient == nil && b.createAuthClient() != nil {
 		return logical.RespondWithStatusCode(nil, req, http.StatusInternalServerError)
 	}
@@ -102,30 +116,20 @@ func (b *backend) pathLoginUpdate(ctx context.Context, req *logical.Request, dat
 	internalClaims := FromClaims(authenticateClientResponse.Principal.Claims)
 	principalType := internalClaims.GetString(ClaimPrincipalType)
 
-	//Check the principal type
+	// Check the principal type
 	if principalType != PrincipalTypeInstance && principalType != PrincipalTypeUser {
 		return unauthorizedLogicalResponse(req, b.Logger(), err)
 	}
 
 	b.Logger().Debug("Authentication ok", "Method:", method, "targetUrl:", targetUrl, "id", req.ID)
 
-	//Validate the home tenancy
+	// Validate the home tenancy
 	err = b.validateHomeTenancy(ctx, req, *authenticateClientResponse.Principal.TenantId)
 	if err != nil {
 		return unauthorizedLogicalResponse(req, b.Logger(), err)
 	}
 
-	//Validate that the role exists
-	roleEntry, err := b.getOCIRole(ctx, req.Storage, roleName)
-	if err != nil {
-		return unauthorizedLogicalResponse(req, b.Logger(), err)
-	}
-
-	if roleEntry == nil {
-		return unauthorizedLogicalResponse(req, b.Logger(), fmt.Errorf("Role is not found"))
-	}
-
-	//Find whether the entity corresponding the Principal is a part of any OCIDs allowed to take the role
+	// Find whether the entity corresponding the Principal is a part of any OCIDs allowed to take the role
 	filterGroupMembershipDetails := FilterGroupMembershipDetails{
 		*authenticateClientResponse.Principal,
 		roleEntry.OcidList,
@@ -146,7 +150,7 @@ func (b *backend) pathLoginUpdate(ctx context.Context, req *logical.Request, dat
 		return unauthorizedLogicalResponse(req, b.Logger(), err)
 	}
 
-	//Validate that the filtered list contains atleast one of the OCIDs of the Role
+	// Validate that the filtered list contains atleast one of the OCIDs of the Role
 	filteredOcidMap := sliceToMap(filterGroupMembershipResponse.GroupIds)
 	found := false
 	for _, item := range roleEntry.OcidList {
@@ -162,7 +166,7 @@ func (b *backend) pathLoginUpdate(ctx context.Context, req *logical.Request, dat
 
 	b.Logger().Debug("Login ok", "Method:", method, "targetUrl:", targetUrl, "id", req.ID)
 
-	//Return the response
+	// Return the response
 	auth := &logical.Auth{
 		Metadata: map[string]string{
 			"role_name": roleName,

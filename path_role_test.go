@@ -43,7 +43,7 @@ func TestBackend_PathRoles(t *testing.T) {
 	numRoles := 10
 	baseRolePath := "role/devrole"
 
-	//first create the roles
+	// first create the roles
 	for i := 1; i <= numRoles; i++ {
 		roleReq.Path = baseRolePath + strconv.Itoa(i)
 		resp, err = b.HandleRequest(context.Background(), roleReq)
@@ -52,7 +52,7 @@ func TestBackend_PathRoles(t *testing.T) {
 		}
 	}
 
-	//now read the roles
+	// now read the roles
 	for i := 1; i <= numRoles; i++ {
 		resp, err = b.HandleRequest(context.Background(), &logical.Request{
 			Operation: logical.ReadOperation,
@@ -65,7 +65,7 @@ func TestBackend_PathRoles(t *testing.T) {
 		}
 	}
 
-	//now update the roles
+	// now update the roles
 	roleDataUpdate := map[string]interface{}{
 		"description":    "My developer role",
 		"ocid_list":      "ocid3",
@@ -86,7 +86,7 @@ func TestBackend_PathRoles(t *testing.T) {
 		}
 	}
 
-	//now read the roles again
+	// now read the roles again
 	for i := 1; i <= numRoles; i++ {
 		resp, err = b.HandleRequest(context.Background(), &logical.Request{
 			Operation: logical.ReadOperation,
@@ -99,7 +99,7 @@ func TestBackend_PathRoles(t *testing.T) {
 		}
 	}
 
-	//now list the roles
+	// now list the roles
 	resp, err = b.HandleRequest(context.Background(), &logical.Request{
 		Operation: logical.ListOperation,
 		Path:      "role/",
@@ -113,7 +113,7 @@ func TestBackend_PathRoles(t *testing.T) {
 		t.Fatalf("Failed to list all the roles")
 	}
 
-	//now delete half the roles
+	// now delete half the roles
 	for i := 1; i <= 5; i++ {
 		resp, err = b.HandleRequest(context.Background(), &logical.Request{
 			Operation: logical.DeleteOperation,
@@ -126,7 +126,7 @@ func TestBackend_PathRoles(t *testing.T) {
 		}
 	}
 
-	//now list the roles again
+	// now list the roles again
 	resp, err = b.HandleRequest(context.Background(), &logical.Request{
 		Operation: logical.ListOperation,
 		Path:      "role/",

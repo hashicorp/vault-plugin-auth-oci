@@ -134,7 +134,7 @@ func createFinalLoginData(clientAddress string, ociClient *OciClient, path strin
 
 	// pack it into loginData
 	loginData := make(map[string]interface{})
-	loginData["requestHeaders"] = serializedRequest
+	loginData["request_headers"] = serializedRequest
 
 	return loginData, nil
 }
