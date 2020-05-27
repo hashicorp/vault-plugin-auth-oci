@@ -225,7 +225,7 @@ func TestBackEnd_ValidateInstancePrincipalLoginNonExistentRole(t *testing.T) {
 func makeRequestAndValidateResponse(t *testing.T, cmdMap map[string]string, expectFailure bool, expectedTTL time.Duration, expectedPolicies []string) {
 
 	role := cmdMap["role"]
-	path := fmt.Sprintf(PathBaseFormat, role)
+	path := fmt.Sprintf(PathBaseFormat, "oci", role)
 	signingPath := PathVersionBase + path
 
 	backend, config, err := initTest(t)

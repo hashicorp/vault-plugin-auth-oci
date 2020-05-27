@@ -17,7 +17,7 @@ import (
 // These constants store the required http path & method information for validating the signed request
 const (
 	PathVersionBase = "/v1"
-	PathBaseFormat  = "/auth/oci/login/%s"
+	PathBaseFormat  = "/auth/%s/login/%s"
 	PathLoginMethod = "get"
 )
 
@@ -78,7 +78,7 @@ func (b *backend) pathLoginUpdate(ctx context.Context, req *logical.Request, dat
 	authenticateRequestHeaders := requestHeaders.(http.Header)
 
 	// Find the targetUrl and Method
-	finalLoginPath := PathVersionBase + fmt.Sprintf(PathBaseFormat, roleName)
+	finalLoginPath := PathVersionBase + fmt.Sprintf(PathBaseFormat, "oci", roleName)
 	method, targetUrl, err := requestTargetToMethodURL(authenticateRequestHeaders[HdrRequestTarget], PathLoginMethod, finalLoginPath)
 	if err != nil {
 		return unauthorizedLogicalResponse(req, b.Logger(), err)
