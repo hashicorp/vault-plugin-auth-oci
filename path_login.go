@@ -4,21 +4,24 @@ package ociauth
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"regexp"
+	"strings"
+	"unicode"
+
 	log "github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/vault/sdk/framework"
 	"github.com/hashicorp/vault/sdk/logical"
 	"github.com/oracle/oci-go-sdk/common"
 	"github.com/pkg/errors"
-	"net/http"
-	"strings"
-	"unicode"
 )
 
 // These constants store the required http path & method information for validating the signed request
 const (
-	PathVersionBase = "/v1"
-	PathBaseFormat  = "/auth/%s/login/%s"
-	PathLoginMethod = "get"
+	PathVersionBase      = "/v1"
+	PathBaseFormat       = "/auth/%s/login/%s"
+	PathLoginMethod      = "get"
+	URLMountSegmentRegex = "[[:ascii:]]+"
 )
 
 // Signing Header constants
@@ -78,8 +81,9 @@ func (b *backend) pathLoginUpdate(ctx context.Context, req *logical.Request, dat
 	authenticateRequestHeaders := requestHeaders.(http.Header)
 
 	// Find the targetUrl and Method
-	finalLoginPath := PathVersionBase + fmt.Sprintf(PathBaseFormat, "oci", roleName)
-	method, targetUrl, err := requestTargetToMethodURL(authenticateRequestHeaders[HdrRequestTarget], PathLoginMethod, finalLoginPath)
+	finalLoginPathRegex := fmt.Sprintf("^%s%s$", PathVersionBase,
+		fmt.Sprintf(PathBaseFormat, URLMountSegmentRegex, roleName))
+	method, targetUrl, err := requestTargetToMethodURL(authenticateRequestHeaders[HdrRequestTarget], PathLoginMethod, finalLoginPathRegex)
 	if err != nil {
 		return unauthorizedLogicalResponse(req, b.Logger(), err)
 	}
@@ -213,12 +217,13 @@ func unauthorizedLogicalResponse(req *logical.Request, logger log.Logger, err er
 	return logical.RespondWithStatusCode(nil, req, http.StatusUnauthorized)
 }
 
-func requestTargetToMethodURL(requestTarget []string, expectedMethod string, expectedUrl string) (method string, url string, err error) {
+func requestTargetToMethodURL(requestTarget []string, expectedMethod string, expectedURLRegex string) (method string, url string, err error) {
 	if len(requestTarget) == 0 {
 		return "", "", errors.New("no (request-target) specified in header")
 	}
 	parts := strings.FieldsFunc(requestTarget[0], unicode.IsSpace)
-	if len(parts) != 2 || strings.ToLower(parts[0]) != expectedMethod || strings.ToLower(parts[1]) != expectedUrl {
+	match, err := regexp.MatchString(expectedURLRegex, strings.ToLower(parts[1]))
+	if len(parts) != 2 || strings.ToLower(parts[0]) != expectedMethod || err != nil || !match {
 		return "", "", errors.New("incorrect (request-target) specified in header")
 	}
 	return parts[0], parts[1], nil
