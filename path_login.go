@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"regexp"
 	"strings"
 	"unicode"
 
@@ -18,10 +17,12 @@ import (
 
 // These constants store the required http path & method information for validating the signed request
 const (
-	PathVersionBase      = "/v1"
-	PathBaseFormat       = "/auth/%s/login/%s"
-	PathLoginMethod      = "get"
-	URLMountSegmentRegex = "[[:ascii:]]+"
+	PathVersionBase    = "/v1"
+	PathBaseFormat     = "/auth/%s/login/%s"
+	PathLoginMethod    = "get"
+	PathSegmentAuth    = "auth"
+	PathSegmentLogin   = "login"
+	PathSegmentVersion = "v1"
 )
 
 // Signing Header constants
@@ -81,9 +82,7 @@ func (b *backend) pathLoginUpdate(ctx context.Context, req *logical.Request, dat
 	authenticateRequestHeaders := requestHeaders.(http.Header)
 
 	// Find the targetUrl and Method
-	finalLoginPathRegex := fmt.Sprintf("^%s%s$", PathVersionBase,
-		fmt.Sprintf(PathBaseFormat, URLMountSegmentRegex, roleName))
-	method, targetUrl, err := requestTargetToMethodURL(authenticateRequestHeaders[HdrRequestTarget], PathLoginMethod, finalLoginPathRegex)
+	method, targetUrl, err := requestTargetToMethodURL(authenticateRequestHeaders[HdrRequestTarget], roleName)
 	if err != nil {
 		return unauthorizedLogicalResponse(req, b.Logger(), err)
 	}
@@ -217,15 +216,31 @@ func unauthorizedLogicalResponse(req *logical.Request, logger log.Logger, err er
 	return logical.RespondWithStatusCode(nil, req, http.StatusUnauthorized)
 }
 
-func requestTargetToMethodURL(requestTarget []string, expectedMethod string, expectedURLRegex string) (method string, url string, err error) {
+func requestTargetToMethodURL(requestTarget []string, roleName string) (method string, url string, err error) {
 	if len(requestTarget) == 0 {
 		return "", "", errors.New("no (request-target) specified in header")
 	}
+	errHeader := errors.New("incorrect (request-target) specified in header")
+
+	// Ensure both the request method and URL path are present in the (request-target) header
 	parts := strings.FieldsFunc(requestTarget[0], unicode.IsSpace)
-	match, err := regexp.MatchString(expectedURLRegex, strings.ToLower(parts[1]))
-	if len(parts) != 2 || strings.ToLower(parts[0]) != expectedMethod || err != nil || !match {
-		return "", "", errors.New("incorrect (request-target) specified in header")
+	if len(parts) != 2 {
+		return "", "", errHeader
 	}
+
+	// Validate the request method
+	if strings.ToLower(parts[0]) != PathLoginMethod {
+		return "", "", errHeader
+	}
+
+	// Validate the URL path by inspecting its segments.
+	// The path mount segment of the URL is not validated.
+	segments := strings.Split(parts[1], "/")
+	if len(segments) < 5 || segments[0] != PathSegmentVersion || segments[1] != PathSegmentAuth ||
+		segments[len(segments)-2] != PathSegmentLogin || segments[len(segments)-1] != roleName {
+		return "", "", errHeader
+	}
+
 	return parts[0], parts[1], nil
 }
 
