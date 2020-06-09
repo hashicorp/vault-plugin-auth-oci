@@ -222,6 +222,8 @@ func requestTargetToMethodURL(requestTarget []string, roleName string) (method s
 	}
 	errHeader := errors.New("incorrect (request-target) specified in header")
 
+	fmt.Println(requestTarget)
+
 	// Ensure both the request method and URL path are present in the (request-target) header
 	parts := strings.FieldsFunc(requestTarget[0], unicode.IsSpace)
 	if len(parts) != 2 {
