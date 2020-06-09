@@ -223,6 +223,8 @@ func requestTargetToMethodURL(requestTarget []string, roleName string) (method s
 	errHeader := errors.New("incorrect (request-target) specified in header")
 
 	fmt.Println(requestTarget)
+	fmt.Println(roleName)
+	// [get /v1/auth/oci/login/test]
 
 	// Ensure both the request method and URL path are present in the (request-target) header
 	parts := strings.FieldsFunc(requestTarget[0], unicode.IsSpace)
@@ -238,8 +240,10 @@ func requestTargetToMethodURL(requestTarget []string, roleName string) (method s
 	// Validate the URL path by inspecting its segments.
 	// The path mount segment of the URL is not validated.
 	segments := strings.Split(parts[1], "/")
+	fmt.Println(segments)
 	if len(segments) < 5 || segments[0] != PathSegmentVersion || segments[1] != PathSegmentAuth ||
 		segments[len(segments)-2] != PathSegmentLogin || segments[len(segments)-1] != roleName {
+		fmt.Println("here")
 		return "", "", errHeader
 	}
 
