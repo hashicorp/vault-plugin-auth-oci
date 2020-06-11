@@ -54,6 +54,7 @@ func (h *CLIHandler) Auth(c *api.Client, m map[string]string) (*api.Secret, erro
 	if !ok {
 		mount = "oci"
 	}
+	mount = strings.TrimSuffix(mount, "/")
 
 	role, ok := m["role"]
 	if !ok {

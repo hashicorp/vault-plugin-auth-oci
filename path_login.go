@@ -235,7 +235,7 @@ func requestTargetToMethodURL(requestTarget []string, roleName string) (method s
 
 	// Validate the URL path by inspecting its segments.
 	// The path mount segment of the URL is not validated.
-	segments := strings.Split(parts[1], "/")
+	segments := strings.Split(strings.TrimPrefix(parts[1], "/"), "/")
 	if len(segments) < 5 || segments[0] != PathSegmentVersion || segments[1] != PathSegmentAuth ||
 		segments[len(segments)-2] != PathSegmentLogin || segments[len(segments)-1] != roleName {
 		return "", "", errHeader
