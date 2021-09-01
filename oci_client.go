@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/errwrap"
-	"github.com/oracle/oci-go-sdk/common"
+	"github.com/oracle/oci-go-sdk/v46/common"
 )
 
 // OciClient stores the client and configuration details for making API requests to OCI Identity Service

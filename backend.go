@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/hashicorp/vault/sdk/framework"
 	"github.com/hashicorp/vault/sdk/logical"
-	"github.com/oracle/oci-go-sdk/common/auth"
+	"github.com/oracle/oci-go-sdk/v46/common/auth"
 	"sync"
 )
 

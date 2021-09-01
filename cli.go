@@ -9,8 +9,8 @@ import (
 
 	"github.com/hashicorp/vault/api"
 
-	"github.com/oracle/oci-go-sdk/common"
-	"github.com/oracle/oci-go-sdk/common/auth"
+	"github.com/oracle/oci-go-sdk/v46/common"
+	"github.com/oracle/oci-go-sdk/v46/common/auth"
 )
 
 type CLIHandler struct{}
@@ -91,6 +91,8 @@ func CreateLoginData(addr string, m map[string]string, path string) (map[string]
 		headerFunc = GetSignedInstanceRequestHeaders
 	case "ak", "apikey":
 		headerFunc = GetSignedAPIRequestHeaders
+	case "rp", "resource":
+		headerFunc = GetSignedResourcePrincipalRequestHeaders
 	default:
 		return nil, fmt.Errorf("unsupported auth_type %q", authType)
 	}
@@ -112,6 +114,19 @@ func GetSignedInstanceRequestHeaders(addr, path string) (http.Header, error) {
 	}
 
 	c, err := NewOciClientWithConfigurationProvider(ip)
+	if err != nil {
+		return nil, err
+	}
+	return getSignedRequestHeaders(addr, &c, path)
+}
+
+func GetSignedResourcePrincipalRequestHeaders(addr, path string) (http.Header, error) {
+	rp, err := auth.ResourcePrincipalConfigurationProvider()
+	if err != nil {
+		return nil, err
+	}
+
+	c, err := NewOciClientWithConfigurationProvider(rp)
 	if err != nil {
 		return nil, err
 	}
