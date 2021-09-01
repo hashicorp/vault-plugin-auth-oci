@@ -11,7 +11,7 @@ import (
 	log "github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/vault/sdk/framework"
 	"github.com/hashicorp/vault/sdk/logical"
-	"github.com/oracle/oci-go-sdk/common"
+	"github.com/oracle/oci-go-sdk/v46/common"
 	"github.com/pkg/errors"
 )
 
@@ -114,14 +114,14 @@ func (b *backend) pathLoginUpdate(ctx context.Context, req *logical.Request, dat
 	if authenticateClientResponse.Principal == nil ||
 		len(authenticateClientResponse.Principal.Claims) == 0 ||
 		*authenticateClientResponse.IsSuccess == false {
-		return unauthorizedLogicalResponse(req, b.Logger(), err)
+		return unauthorizedLogicalResponse(req, b.Logger(), fmt.Errorf("Response not successful or with no principal/claims"))
 	}
 	internalClaims := FromClaims(authenticateClientResponse.Principal.Claims)
 	principalType := internalClaims.GetString(ClaimPrincipalType)
 
 	// Check the principal type
-	if principalType != PrincipalTypeInstance && principalType != PrincipalTypeUser {
-		return unauthorizedLogicalResponse(req, b.Logger(), err)
+	if principalType != PrincipalTypeInstance && principalType != PrincipalTypeUser && principalType != PrincipalTypeResource {
+		return unauthorizedLogicalResponse(req, b.Logger(), fmt.Errorf("Unrecognized principalType: %v", principalType))
 	}
 
 	b.Logger().Trace("Authentication ok", "Method:", method, "targetUrl:", targetUrl, "id", req.ID)
@@ -150,7 +150,7 @@ func (b *backend) pathLoginUpdate(ctx context.Context, req *logical.Request, dat
 		return unauthorizedLogicalResponse(req, b.Logger(), err)
 	}
 	if filterGroupMembershipResponse.GroupIds == nil {
-		return unauthorizedLogicalResponse(req, b.Logger(), err)
+		return unauthorizedLogicalResponse(req, b.Logger(), fmt.Errorf("No matching group found"))
 	}
 
 	// Validate that the filtered list contains atleast one of the OCIDs of the Role

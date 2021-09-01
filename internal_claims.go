@@ -14,6 +14,7 @@ type InternalClaim struct {
 const (
 	PrincipalTypeUser     = "user"
 	PrincipalTypeInstance = "instance"
+	PrincipalTypeResource = "resource"
 )
 
 // This constant defines the Principal type key

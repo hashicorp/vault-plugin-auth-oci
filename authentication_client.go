@@ -4,7 +4,7 @@ package ociauth
 import (
 	"context"
 	"fmt"
-	"github.com/oracle/oci-go-sdk/common"
+	"github.com/oracle/oci-go-sdk/v46/common"
 	"net/http"
 	"os"
 )
@@ -87,8 +87,8 @@ func (client AuthenticationClient) AuthenticateClient(ctx context.Context, reque
 	return
 }
 
-func (client AuthenticationClient) authenticateClient(ctx context.Context, request common.OCIRequest) (common.OCIResponse, error) {
-	httpRequest, err := request.HTTPRequest(http.MethodPost, "/authentication/authenticateClient")
+func (client AuthenticationClient) authenticateClient(ctx context.Context, request common.OCIRequest, binaryRequestBody *common.OCIReadSeekCloser, extraHeaders map[string]string) (common.OCIResponse, error) {
+	httpRequest, err := request.HTTPRequest(http.MethodPost, "/authentication/authenticateClient", binaryRequestBody, extraHeaders)
 	if err != nil {
 		return nil, err
 	}
@@ -135,8 +135,8 @@ func (client AuthenticationClient) FilterGroupMembership(ctx context.Context, re
 	return
 }
 
-func (client AuthenticationClient) filterGroupMembership(ctx context.Context, request common.OCIRequest) (common.OCIResponse, error) {
-	httpRequest, err := request.HTTPRequest(http.MethodPost, "/filterGroupMembership")
+func (client AuthenticationClient) filterGroupMembership(ctx context.Context, request common.OCIRequest, binaryRequestBody *common.OCIReadSeekCloser, extraHeaders map[string]string) (common.OCIResponse, error) {
+	httpRequest, err := request.HTTPRequest(http.MethodPost, "/filterGroupMembership", binaryRequestBody, extraHeaders)
 	if err != nil {
 		return nil, err
 	}

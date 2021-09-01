@@ -2,7 +2,7 @@
 package ociauth
 
 import (
-	"github.com/oracle/oci-go-sdk/common"
+	"github.com/oracle/oci-go-sdk/v46/common"
 	"net/http"
 )
 
@@ -35,8 +35,13 @@ func (request FilterGroupMembershipRequest) String() string {
 }
 
 // HTTPRequest implements the OCIRequest interface
-func (request FilterGroupMembershipRequest) HTTPRequest(method, path string) (http.Request, error) {
-	return common.MakeDefaultHTTPRequestWithTaggedStruct(method, path, request)
+func (request FilterGroupMembershipRequest) HTTPRequest(method, path string, binaryRequestBody *common.OCIReadSeekCloser, extraHeaders map[string]string) (http.Request, error) {
+	return common.MakeDefaultHTTPRequestWithTaggedStructAndExtraHeaders(method, path, request, extraHeaders)
+}
+
+// BinaryRequestBody implements the OCIRequest interface
+func (request FilterGroupMembershipRequest) BinaryRequestBody()  (*common.OCIReadSeekCloser, bool) {
+	return nil, false
 }
 
 // RetryPolicy implements the OCIRetryableRequest interface. This retrieves the specified retry policy.

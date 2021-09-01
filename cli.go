@@ -7,8 +7,8 @@ import (
 
 	"github.com/hashicorp/vault/api"
 
-	"github.com/oracle/oci-go-sdk/common"
-	"github.com/oracle/oci-go-sdk/common/auth"
+	"github.com/oracle/oci-go-sdk/v46/common"
+	"github.com/oracle/oci-go-sdk/v46/common/auth"
 	"net/http"
 	"net/url"
 )
@@ -91,6 +91,8 @@ func CreateLoginData(clientAddress string, m map[string]string, path string) (ma
 		return createLoginDataForInstancePrincipal(clientAddress, path)
 	case "ak", "apikey":
 		return createLoginDataForApiKeys(clientAddress, path)
+	case "rp", "resource":
+	    return createLoginDataForResourcePrincipal(clientAddress, path)
 	}
 
 	return nil, fmt.Errorf("Unknown auth_type")
@@ -115,6 +117,19 @@ func createLoginDataForInstancePrincipal(clientAddress string, path string) (map
 		return nil, err
 	}
 	ociClient, err := NewOciClientWithConfigurationProvider(ip)
+	if err != nil {
+		return nil, err
+	}
+	return createFinalLoginData(clientAddress, &ociClient, path)
+}
+
+func createLoginDataForResourcePrincipal(clientAddress string, path string) (map[string]interface{}, error) {
+
+	rp, err := auth.ResourcePrincipalConfigurationProvider()
+	if err != nil {
+		return nil, err
+	}
+	ociClient, err := NewOciClientWithConfigurationProvider(rp)
 	if err != nil {
 		return nil, err
 	}
