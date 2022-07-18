@@ -31,7 +31,7 @@ const (
 	HdrRequestTarget = `(request-target)`
 )
 
-func pathLogin(b *backend) *framework.Path {
+func pathLoginRole(b *backend) *framework.Path {
 	return &framework.Path{
 		Pattern: "login/" + framework.GenericNameRegex("role"),
 		Fields: map[string]*framework.FieldSchema{
@@ -45,12 +45,56 @@ func pathLogin(b *backend) *framework.Path {
 			},
 		},
 		Callbacks: map[logical.Operation]framework.OperationFunc{
-			logical.UpdateOperation: b.pathLoginUpdate,
+			logical.UpdateOperation:      b.pathLoginUpdate,
+			logical.ResolveRoleOperation: b.pathResolveRole,
+		},
+
+		HelpSynopsis:    pathLoginRoleSyn,
+		HelpDescription: pathLoginRoleDesc,
+	}
+}
+
+func pathLogin(b *backend) *framework.Path {
+	return &framework.Path{
+		Pattern: "login$",
+		Fields: map[string]*framework.FieldSchema{
+			"request_headers": {
+				Type:        framework.TypeHeader,
+				Description: `The signed headers of the client`,
+			},
+			"role": {
+				Type:        framework.TypeLowerCaseString,
+				Description: "Name of the role.",
+			},
+		},
+		Operations: map[logical.Operation]framework.OperationHandler{
+			logical.ResolveRoleOperation: &framework.PathOperation{
+				Callback: b.pathResolveRole,
+			},
 		},
 
 		HelpSynopsis:    pathLoginSyn,
 		HelpDescription: pathLoginDesc,
 	}
+}
+
+func (b *backend) pathResolveRole(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
+	role, ok := data.GetOk("role")
+	if !ok {
+		return logical.ErrorResponse("Role is not specified"), nil
+	}
+	roleName := role.(string)
+
+	// Validate that the role exists
+	roleEntry, err := b.getOCIRole(ctx, req.Storage, roleName)
+	if err != nil {
+		return nil, err
+	}
+
+	if roleEntry == nil {
+		return logical.ErrorResponse(fmt.Sprintf("invalid role name %q", roleName)), nil
+	}
+	return logical.ResolveRoleResponse(roleName)
 }
 
 func (b *backend) pathLoginUpdate(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
@@ -244,10 +288,18 @@ func requestTargetToMethodURL(requestTarget []string, roleName string) (method s
 	return parts[0], parts[1], nil
 }
 
-const pathLoginSyn = `
+const pathLoginRoleSyn = `
 Authenticates to Vault using OCI credentials
 `
 
-const pathLoginDesc = `
+const pathLoginRoleDesc = `
 Authenticates to Vault using OCI credentials such as User Api Key, Instance Principal
+`
+
+const pathLoginSyn = `
+Determines the role that would be used for login from a valid OCI login request
+`
+
+const pathLoginDesc = `
+Determines the role that would be used for login from a valid OCI login request
 `

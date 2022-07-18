@@ -43,6 +43,7 @@ func Backend() (*backend, error) {
 		},
 		Paths: []*framework.Path{
 			pathLogin(b),
+			pathLoginRole(b),
 			pathRole(b),
 			pathListRoles(b),
 			pathConfig(b),
