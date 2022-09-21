@@ -3,14 +3,14 @@ package ociauth
 
 import (
 	"fmt"
+	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/hashicorp/vault/api"
 
 	"github.com/oracle/oci-go-sdk/common"
 	"github.com/oracle/oci-go-sdk/common/auth"
-	"net/http"
-	"net/url"
 )
 
 type CLIHandler struct{}
@@ -58,20 +58,20 @@ func (h *CLIHandler) Auth(c *api.Client, m map[string]string) (*api.Secret, erro
 
 	role, ok := m["role"]
 	if !ok {
-		return nil, fmt.Errorf("Enter the role")
+		return nil, fmt.Errorf("'role' is required")
 	}
 	role = strings.ToLower(role)
 
 	path := fmt.Sprintf(PathBaseFormat, mount, role)
 	signingPath := PathVersionBase + path
 
-	loginData, err := CreateLoginData(c.Address(), m, signingPath)
+	data, err := CreateLoginData(c.Address(), m, signingPath)
 	if err != nil {
 		return nil, err
 	}
 
 	// Now try to login
-	secret, err := c.Logical().Write(path, loginData)
+	secret, err := c.Logical().Write(path, data)
 	if err != nil {
 		return nil, err
 	}
@@ -79,75 +79,70 @@ func (h *CLIHandler) Auth(c *api.Client, m map[string]string) (*api.Secret, erro
 }
 
 // CreateLoginData creates the interface required for a login request, signed using the corresponding OCI Identity Principal
-func CreateLoginData(clientAddress string, m map[string]string, path string) (map[string]interface{}, error) {
-
-	authtype, ok := m["auth_type"]
+func CreateLoginData(addr string, m map[string]string, path string) (map[string]interface{}, error) {
+	authType, ok := m["auth_type"]
 	if !ok {
-		return nil, fmt.Errorf("Enter the auth_type")
+		return nil, fmt.Errorf("'auth_type' is required")
 	}
 
-	switch strings.ToLower(authtype) {
+	var headerFunc func(string, string) (http.Header, error)
+	switch strings.ToLower(authType) {
 	case "ip", "instance":
-		return createLoginDataForInstancePrincipal(clientAddress, path)
+		headerFunc = GetSignedInstanceRequestHeaders
 	case "ak", "apikey":
-		return createLoginDataForApiKeys(clientAddress, path)
+		headerFunc = GetSignedAPIRequestHeaders
+	default:
+		return nil, fmt.Errorf("unsupported auth_type %q", authType)
 	}
 
-	return nil, fmt.Errorf("Unknown auth_type")
-}
-
-func createLoginDataForApiKeys(clientAddress string, path string) (map[string]interface{}, error) {
-
-	provider := common.DefaultConfigProvider()
-
-	ociClient, err := NewOciClientWithConfigurationProvider(provider)
+	headers, err := headerFunc(addr, path)
 	if err != nil {
 		return nil, err
 	}
 
-	return createFinalLoginData(clientAddress, &ociClient, path)
+	return map[string]interface{}{
+		"request_headers": headers,
+	}, nil
 }
 
-func createLoginDataForInstancePrincipal(clientAddress string, path string) (map[string]interface{}, error) {
-
+func GetSignedInstanceRequestHeaders(addr, path string) (http.Header, error) {
 	ip, err := auth.InstancePrincipalConfigurationProvider()
 	if err != nil {
 		return nil, err
 	}
-	ociClient, err := NewOciClientWithConfigurationProvider(ip)
+
+	c, err := NewOciClientWithConfigurationProvider(ip)
 	if err != nil {
 		return nil, err
 	}
-	return createFinalLoginData(clientAddress, &ociClient, path)
+	return getSignedRequestHeaders(addr, &c, path)
 }
 
-func createFinalLoginData(clientAddress string, ociClient *OciClient, path string) (map[string]interface{}, error) {
-
-	ociClient.Host = clientAddress
-	request, err := ociClient.ConstructLoginRequest(path)
+func GetSignedAPIRequestHeaders(addr, path string) (http.Header, error) {
+	c, err := NewOciClientWithConfigurationProvider(common.DefaultConfigProvider())
 	if err != nil {
 		return nil, err
 	}
 
-	clientURL, err := url.Parse(clientAddress)
+	return getSignedRequestHeaders(addr, &c, path)
+}
+
+func getSignedRequestHeaders(addr string, client *OciClient, path string) (http.Header, error) {
+	clientURL, err := url.Parse(addr)
 	if err != nil {
 		return nil, err
 	}
+
+	client.Host = addr
+	request, err := client.ConstructLoginRequest(path)
+	if err != nil {
+		return nil, err
+	}
+
 	request.Host = clientURL.Host
+	request.Header.Set("host", request.Host)
+	request.Header.Set("(request-target)",
+		fmt.Sprintf("%s %s", strings.ToLower(request.Method), request.URL.RequestURI()))
 
-	// serialize the request
-	serializedRequest := serializeRequest(request)
-
-	// pack it into loginData
-	loginData := make(map[string]interface{})
-	loginData["request_headers"] = serializedRequest
-
-	return loginData, nil
-}
-
-func serializeRequest(request http.Request) map[string][]string {
-	requestHeaders := request.Header
-	requestHeaders["host"] = []string{request.Host}
-	requestHeaders["(request-target)"] = []string{getRequestTarget(&request)}
-	return requestHeaders
+	return request.Header, nil
 }
