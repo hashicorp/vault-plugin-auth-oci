@@ -4,13 +4,14 @@ package ociauth
 import (
 	"errors"
 	"fmt"
-	"github.com/hashicorp/errwrap"
-	"github.com/oracle/oci-go-sdk/common"
 	"net/http"
 	"net/url"
 	"path"
 	"strings"
 	"time"
+
+	"github.com/hashicorp/errwrap"
+	"github.com/oracle/oci-go-sdk/common"
 )
 
 // OciClient stores the client and configuration details for making API requests to OCI Identity Service
@@ -103,11 +104,4 @@ func (client *OciClient) prepareRequest(request *http.Request) (err error) {
 		request.URL.Path = path.Clean(fmt.Sprintf("/%s/%s", client.BasePath, currentPath))
 	}
 	return
-}
-
-// getRequestTarget returns the value of the special (request-target) header field name
-// per https://tools.ietf.org/html/draft-cavage-http-signatures-06#section-2.3
-func getRequestTarget(request *http.Request) string {
-	lowercaseMethod := strings.ToLower(request.Method)
-	return fmt.Sprintf("%s %s", lowercaseMethod, request.URL.RequestURI())
 }
