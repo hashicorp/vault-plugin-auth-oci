@@ -141,6 +141,8 @@ func getSignedRequestHeaders(addr string, client *OciClient, path string) (http.
 
 	request.Host = clientURL.Host
 	request.Header.Set("host", request.Host)
+
+	// ref: https://tools.ietf.org/html/draft-cavage-http-signatures-06#section-2.3
 	request.Header.Set("(request-target)",
 		fmt.Sprintf("%s %s", strings.ToLower(request.Method), request.URL.RequestURI()))
 
