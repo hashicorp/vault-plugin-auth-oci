@@ -4,11 +4,12 @@ package ociauth
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/vault/sdk/logical"
 	"os"
 	"reflect"
 	"testing"
 	"time"
+
+	"github.com/hashicorp/vault/sdk/logical"
 )
 
 const (
@@ -16,14 +17,21 @@ const (
 	OpsRole             = "opsrole"
 	KnowledgeWorkerRole = "kwrole"
 	NonExistentRole     = "nonrole"
+	envVarHomeTenancyID = "HOME_TENANCY_ID"
+	envVarRoleOCIDList  = "ROLE_OCID_LIST"
 )
 
 func createHomeTenancy(t *testing.T, backendConfig *logical.BackendConfig, backend logical.Backend) {
+	t.Helper()
+
 	var resp *logical.Response
 	var err error
 	configPath := "config"
 
-	homeTenancyId := os.Getenv("HOME_TENANCY_ID")
+	homeTenancyId := os.Getenv(envVarHomeTenancyID)
+	if homeTenancyId == "" {
+		t.Fatalf("%s is not set", envVarHomeTenancyID)
+	}
 
 	configData := map[string]interface{}{
 		HomeTenancyIdConfigName: homeTenancyId,
@@ -43,6 +51,7 @@ func createHomeTenancy(t *testing.T, backendConfig *logical.BackendConfig, backe
 }
 
 func initTest(t *testing.T) (backend logical.Backend, config *logical.BackendConfig, err error) {
+	t.Helper()
 
 	defaultLeaseTTLVal := time.Hour * 24
 	maxLeaseTTLVal := time.Hour * 24 * 2
@@ -64,14 +73,14 @@ func initTest(t *testing.T) (backend logical.Backend, config *logical.BackendCon
 
 	createHomeTenancy(t, config, backend)
 
-	roleOcidList := os.Getenv("ROLE_OCID_LIST")
-	if roleOcidList == "" {
-		return nil, nil, fmt.Errorf("ROLE_OCID_LIST environment variable is empty")
+	roleOCIDList := os.Getenv(envVarRoleOCIDList)
+	if roleOCIDList == "" {
+		return nil, nil, fmt.Errorf("%s is not set", envVarRoleOCIDList)
 	}
 	// Create the devRole
 	devRoleData := map[string]interface{}{
 		"description":    DevRole + " description",
-		"ocid_list":      roleOcidList,
+		"ocid_list":      roleOCIDList,
 		"token_policies": "policy1,policy2",
 		"token_ttl":      1500,
 	}
@@ -97,7 +106,7 @@ func initTest(t *testing.T) (backend logical.Backend, config *logical.BackendCon
 	// Create the knowledgeWorkerRole
 	knowledgeWorkerRole := map[string]interface{}{
 		"description":    KnowledgeWorkerRole + " description",
-		"ocid_list":      roleOcidList,
+		"ocid_list":      roleOCIDList,
 		"token_policies": "policy1,policy5",
 		"token_ttl":      1000,
 	}
@@ -223,6 +232,7 @@ func TestBackEnd_ValidateInstancePrincipalLoginNonExistentRole(t *testing.T) {
 }
 
 func makeRequestAndValidateResponse(t *testing.T, cmdMap map[string]string, expectFailure bool, expectedTTL time.Duration, expectedPolicies []string) {
+	t.Helper()
 
 	role := cmdMap["role"]
 	path := fmt.Sprintf(PathBaseFormat, "oci", role)
