@@ -8,7 +8,7 @@ require (
 	github.com/hashicorp/vault/api v1.8.0
 	github.com/hashicorp/vault/sdk v0.6.0
 	github.com/hashicorp/yamux v0.0.0-20181012175058-2f1d1f20f75d // indirect
-	github.com/oracle/oci-go-sdk v7.0.0+incompatible
+	github.com/oracle/oci-go-sdk v24.3.0+incompatible
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/objx v0.2.0 // indirect
 )
