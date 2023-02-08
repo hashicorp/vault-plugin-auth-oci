@@ -45,6 +45,9 @@ resource "tls_private_key" "main" {
 }
 
 resource "null_resource" "main" {
+  triggers = {
+    key = tls_private_key.main.public_key_openssh
+  }
   provisioner "local-exec" {
     command = "echo \"${tls_private_key.main.private_key_pem}\" > private.key"
   }
