@@ -146,34 +146,37 @@ resource "oci_core_instance" "test_instance" {
 }
 
 resource "oci_identity_dynamic_group" "test_dynamic_group" {
-    compartment_id = var.tenancy_ocid
-    description = "test dynamic group"
-    matching_rule = "Any {instance.id = '${oci_core_instance.test_instance.id}', resource.id = '${var.user_ocid}'}"
-    name = "VaultDynamicGroup"
+  compartment_id = var.tenancy_ocid
+  description    = "test dynamic group"
+  matching_rule  = "Any {instance.id = '${oci_core_instance.test_instance.id}', resource.id = '${var.user_ocid}'}"
+  name           = "VaultDynamicGroup"
 }
 
 resource "oci_identity_group" "test_group" {
-    compartment_id = var.tenancy_ocid
-    description = "test group"
-    name = "VaultTestGroup"
+  compartment_id = var.tenancy_ocid
+  description    = "test group"
+  name           = "VaultTestGroup"
 }
 
 resource "oci_identity_user_group_membership" "test_user_group_membership" {
-    group_id = oci_identity_group.test_group.id
-    user_id = var.user_ocid
+  group_id = oci_identity_group.test_group.id
+  user_id  = var.user_ocid
 }
 
 resource "oci_identity_policy" "test_policy" {
-    compartment_id = var.tenancy_ocid
-    description = "allow dynamic group to auth and group membership"
-    name = "VaultDynamicGroupInspectPolicy"
-    statements = [
-      "allow dynamic-group ${oci_identity_dynamic_group.test_dynamic_group.name} to {AUTHENTICATION_INSPECT} in tenancy",
-      "allow dynamic-group ${oci_identity_dynamic_group.test_dynamic_group.name} to {GROUP_MEMBERSHIP_INSPECT} in tenancy",
-    ]
+  compartment_id = var.tenancy_ocid
+  description    = "allow dynamic group to auth and group membership"
+  name           = "VaultDynamicGroupInspectPolicy"
+  statements = [
+    "allow dynamic-group ${oci_identity_dynamic_group.test_dynamic_group.name} to {AUTHENTICATION_INSPECT} in tenancy",
+    "allow dynamic-group ${oci_identity_dynamic_group.test_dynamic_group.name} to {GROUP_MEMBERSHIP_INSPECT} in tenancy",
+  ]
 }
 
 resource "null_resource" "oci_config" {
+  triggers = {
+    instance = oci_core_instance.test_instance.id
+  }
   depends_on = [oci_core_instance.test_instance]
   provisioner "remote-exec" {
     inline = [
@@ -195,6 +198,9 @@ resource "null_resource" "oci_config" {
 }
 
 resource "null_resource" "oci_private_key" {
+  triggers = {
+    instance = oci_core_instance.test_instance.id
+  }
   depends_on = [null_resource.oci_config]
 
   provisioner "local-exec" {
@@ -203,6 +209,9 @@ resource "null_resource" "oci_private_key" {
 }
 
 resource "null_resource" "plugin_test" {
+  triggers = {
+    instance = oci_core_instance.test_instance.id
+  }
   depends_on = [null_resource.oci_private_key]
   provisioner "remote-exec" {
     inline = [
