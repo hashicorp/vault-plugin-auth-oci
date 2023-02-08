@@ -28,6 +28,8 @@ This should give you a private key file, the fingerprint, your tenancy OCID, and
 Using those, you can run the acceptance tests via:
 
 ```sh
+cd tests/terraform
+# download your private key to this directory
 terraform init
 terraform apply -var "fingerprint=YOURFINGERPRINT" -var "tenancy_ocid=YOUR_TENANCY_OCID" -var "user_ocid=YOUR_USER_OCID" -var "private_key_path=YOUR_PRIVATE_KEY"
 ```

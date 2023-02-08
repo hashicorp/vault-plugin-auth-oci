@@ -3,4 +3,4 @@ bin/*
 .idea/*
 vendor/*
 .terraform*
-terraform*
+terraform.tfstate*
