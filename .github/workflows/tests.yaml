@@ -35,5 +35,9 @@ jobs:
             ${{ runner.os }}-go-
       - name: Run Tests
         run: make test
+      - name: Install Gox
+        run: |
+          go get github.com/mitchellh/gox
+          go install github.com/mitchellh/gox
       - name: Run Test Build
         run: make dev
