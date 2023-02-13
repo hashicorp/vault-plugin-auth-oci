@@ -14,7 +14,7 @@ jobs:
     name: Jira sync
     steps:
     - name: Login
-      uses: atlassian/gajira-login@v2.0.0
+      uses: atlassian/gajira-login@v2.0.0 # No TSCCR entry available for Action
       env:
         JIRA_BASE_URL: ${{ secrets.JIRA_SYNC_BASE_URL }}
         JIRA_USER_EMAIL: ${{ secrets.JIRA_SYNC_USER_EMAIL }}
@@ -32,7 +32,7 @@ jobs:
 
     - name: Create ticket
       if: github.event.action == 'opened'
-      uses: tomhjp/gh-action-jira-create@v0.2.0
+      uses: tomhjp/gh-action-jira-create@v0.2.0 # No TSCCR entry available for Action
       with:
         project: VAULT
         issuetype: "GH Issue"
@@ -45,28 +45,28 @@ jobs:
     - name: Search
       if: github.event.action != 'opened'
       id: search
-      uses: tomhjp/gh-action-jira-search@v0.2.1
+      uses: tomhjp/gh-action-jira-search@v0.2.1 # No TSCCR entry available for Action
       with:
         # cf[10089] is Issue Link custom field
         jql: 'project = "VAULT" and cf[10089]="${{ github.event.issue.html_url || github.event.pull_request.html_url }}"'
 
     - name: Sync comment
       if: github.event.action == 'created' && steps.search.outputs.issue
-      uses: tomhjp/gh-action-jira-comment@v0.2.0
+      uses: tomhjp/gh-action-jira-comment@v0.2.0 # No TSCCR entry available for Action
       with:
         issue: ${{ steps.search.outputs.issue }}
         comment: "${{ github.actor }} ${{ github.event.review.state || 'commented' }}:\n\n${{ github.event.comment.body || github.event.review.body }}\n\n${{ github.event.comment.html_url || github.event.review.html_url }}"
 
     - name: Close ticket
       if: (github.event.action == 'closed' || github.event.action == 'deleted') && steps.search.outputs.issue
-      uses: atlassian/gajira-transition@v2.0.1
+      uses: atlassian/gajira-transition@v2.0.1 # No TSCCR entry available for Action
       with:
         issue: ${{ steps.search.outputs.issue }}
         transition: Closed
 
     - name: Reopen ticket
       if: github.event.action == 'reopened' && steps.search.outputs.issue
-      uses: atlassian/gajira-transition@v2.0.1
+      uses: atlassian/gajira-transition@v2.0.1 # No TSCCR entry available for Action
       with:
         issue: ${{ steps.search.outputs.issue }}
         transition: "Pending Triage"
