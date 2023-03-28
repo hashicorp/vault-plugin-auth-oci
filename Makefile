@@ -1,8 +1,7 @@
 TOOL?=vault-plugin-auth-oci
 TEST?=$$(go list ./... | grep -v /vendor/)
 VETARGS?=-asmdecl -atomic -bool -buildtags -copylocks -methods -nilfunc -printf -rangeloops -shift -structtags -unsafeptr
-EXTERNAL_TOOLS=\
-	github.com/golang/dep/cmd/dep
+EXTERNAL_TOOLS=
 BUILD_TAGS?=${TOOL}
 GOFMT_FILES?=$$(find . -name '*.go' | grep -v vendor)
 
