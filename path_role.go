@@ -180,13 +180,13 @@ func (b *backend) pathRoleCreateUpdate(ctx context.Context, req *logical.Request
 		return logical.ErrorResponse(err.Error()), logical.ErrInvalidRequest
 	}
 
-	var resp logical.Response
+	var resp *logical.Response
 
 	if err := b.setOCIRole(ctx, req.Storage, roleName, roleEntry); err != nil {
 		return nil, err
 	}
 
-	return &resp, nil
+	return resp, nil
 }
 
 // Struct to hold the information associated with an OCI role
