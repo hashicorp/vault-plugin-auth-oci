@@ -17,6 +17,11 @@ const (
 func pathConfig(b *backend) *framework.Path {
 	return &framework.Path{
 		Pattern: "config",
+
+		DisplayAttrs: &framework.DisplayAttributes{
+			OperationPrefix: operationPrefixOCI,
+		},
+
 		Fields: map[string]*framework.FieldSchema{
 			HomeTenancyIdConfigName: {
 				Type:        framework.TypeString,
@@ -26,11 +31,31 @@ func pathConfig(b *backend) *framework.Path {
 
 		ExistenceCheck: b.pathConfigExistenceCheck,
 
-		Callbacks: map[logical.Operation]framework.OperationFunc{
-			logical.CreateOperation: b.pathConfigCreateUpdate,
-			logical.UpdateOperation: b.pathConfigCreateUpdate,
-			logical.DeleteOperation: b.pathConfigDelete,
-			logical.ReadOperation:   b.pathConfigRead,
+		Operations: map[logical.Operation]framework.OperationHandler{
+			logical.CreateOperation: &framework.PathOperation{
+				Callback: b.pathConfigCreateUpdate,
+				DisplayAttrs: &framework.DisplayAttributes{
+					OperationVerb: "configure",
+				},
+			},
+			logical.UpdateOperation: &framework.PathOperation{
+				Callback: b.pathConfigCreateUpdate,
+				DisplayAttrs: &framework.DisplayAttributes{
+					OperationVerb: "configure",
+				},
+			},
+			logical.DeleteOperation: &framework.PathOperation{
+				Callback: b.pathConfigDelete,
+				DisplayAttrs: &framework.DisplayAttributes{
+					OperationSuffix: "configuration",
+				},
+			},
+			logical.ReadOperation: &framework.PathOperation{
+				Callback: b.pathConfigRead,
+				DisplayAttrs: &framework.DisplayAttributes{
+					OperationSuffix: "configuration",
+				},
+			},
 		},
 
 		HelpSynopsis:    pathConfigSyn,

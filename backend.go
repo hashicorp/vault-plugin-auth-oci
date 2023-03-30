@@ -10,6 +10,9 @@ import (
 	"sync"
 )
 
+// operationPrefixOCI is used as a prefix for OpenAPI operation id's.
+const operationPrefixOCI = "oci"
+
 func Factory(ctx context.Context, conf *logical.BackendConfig) (logical.Backend, error) {
 	b, err := Backend()
 	if err != nil {
