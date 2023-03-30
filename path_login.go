@@ -111,11 +111,11 @@ func (b *backend) pathLoginUpdate(ctx context.Context, req *logical.Request, dat
 	// Validate that the role exists
 	roleEntry, err := b.getOCIRole(ctx, req.Storage, roleName)
 	if err != nil {
-		return unauthorizedLogicalResponse(req, b.Logger(), err)
+		return badRequestLogicalResponse(req, b.Logger(), err), nil
 	}
 
 	if roleEntry == nil {
-		return unauthorizedLogicalResponse(req, b.Logger(), fmt.Errorf("Role is not found"))
+		return badRequestLogicalResponse(req, b.Logger(), fmt.Errorf("Role is not found")), nil
 	}
 
 	// Parse the authentication headers
@@ -128,7 +128,7 @@ func (b *backend) pathLoginUpdate(ctx context.Context, req *logical.Request, dat
 	// Find the targetUrl and Method
 	method, targetUrl, err := requestTargetToMethodURL(authenticateRequestHeaders[HdrRequestTarget], roleName)
 	if err != nil {
-		return unauthorizedLogicalResponse(req, b.Logger(), err)
+		return badRequestLogicalResponse(req, b.Logger(), err), nil
 	}
 	b.Logger().Trace(req.ID, "Method:", method, "targetUrl:", targetUrl)
 
@@ -153,19 +153,19 @@ func (b *backend) pathLoginUpdate(ctx context.Context, req *logical.Request, dat
 	}
 	authenticateClientResponse, err := b.authenticationClient.AuthenticateClient(ctx, authenticateClientRequest)
 	if err != nil {
-		return unauthorizedLogicalResponse(req, b.Logger(), err)
+		return badRequestLogicalResponse(req, b.Logger(), err), nil
 	}
 	if authenticateClientResponse.Principal == nil ||
 		len(authenticateClientResponse.Principal.Claims) == 0 ||
 		*authenticateClientResponse.IsSuccess == false {
-		return unauthorizedLogicalResponse(req, b.Logger(), err)
+		return badRequestLogicalResponse(req, b.Logger(), fmt.Errorf("OCI authentication failed")), nil
 	}
 	internalClaims := FromClaims(authenticateClientResponse.Principal.Claims)
 	principalType := internalClaims.GetString(ClaimPrincipalType)
 
 	// Check the principal type
 	if principalType != PrincipalTypeInstance && principalType != PrincipalTypeUser {
-		return unauthorizedLogicalResponse(req, b.Logger(), err)
+		return badRequestLogicalResponse(req, b.Logger(), fmt.Errorf("Wrong principal type")), nil
 	}
 
 	b.Logger().Trace("Authentication ok", "Method:", method, "targetUrl:", targetUrl, "id", req.ID)
@@ -173,7 +173,7 @@ func (b *backend) pathLoginUpdate(ctx context.Context, req *logical.Request, dat
 	// Validate the home tenancy
 	err = b.validateHomeTenancy(ctx, req, *authenticateClientResponse.Principal.TenantId)
 	if err != nil {
-		return unauthorizedLogicalResponse(req, b.Logger(), err)
+		return badRequestLogicalResponse(req, b.Logger(), err), nil
 	}
 
 	// Find whether the entity corresponding the Principal is a part of any OCIDs allowed to take the role
@@ -191,10 +191,10 @@ func (b *backend) pathLoginUpdate(ctx context.Context, req *logical.Request, dat
 
 	filterGroupMembershipResponse, err := b.authenticationClient.FilterGroupMembership(ctx, filterGroupMembershipRequest)
 	if err != nil {
-		return unauthorizedLogicalResponse(req, b.Logger(), err)
+		return badRequestLogicalResponse(req, b.Logger(), err), nil
 	}
 	if filterGroupMembershipResponse.GroupIds == nil {
-		return unauthorizedLogicalResponse(req, b.Logger(), err)
+		return badRequestLogicalResponse(req, b.Logger(), fmt.Errorf("No membership OCIDs found")), nil
 	}
 
 	// Validate that the filtered list contains atleast one of the OCIDs of the Role
@@ -208,7 +208,7 @@ func (b *backend) pathLoginUpdate(ctx context.Context, req *logical.Request, dat
 		}
 	}
 	if found == false {
-		return unauthorizedLogicalResponse(req, b.Logger(), fmt.Errorf("Entity not a part of any of the Role OCIDs"))
+		return badRequestLogicalResponse(req, b.Logger(), fmt.Errorf("Entity not a part of any of the Role OCIDs")), nil
 	}
 
 	b.Logger().Trace("Login ok", "Method:", method, "targetUrl:", targetUrl, "id", req.ID)
@@ -255,9 +255,9 @@ func (b *backend) validateHomeTenancy(ctx context.Context, req *logical.Request,
 	return nil
 }
 
-func unauthorizedLogicalResponse(req *logical.Request, logger log.Logger, err error) (*logical.Response, error) {
+func badRequestLogicalResponse(req *logical.Request, logger log.Logger, err error) *logical.Response {
 	logger.Trace(req.ID, ": Failed with error:", err)
-	return logical.RespondWithStatusCode(nil, req, http.StatusUnauthorized)
+	return logical.ErrorResponse(err.Error())
 }
 
 func requestTargetToMethodURL(requestTarget []string, roleName string) (method string, url string, err error) {
