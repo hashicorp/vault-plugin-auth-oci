@@ -34,6 +34,12 @@ const (
 func pathLoginRole(b *backend) *framework.Path {
 	return &framework.Path{
 		Pattern: "login/" + framework.GenericNameRegex("role"),
+
+		DisplayAttrs: &framework.DisplayAttributes{
+			OperationPrefix: operationPrefixOCI,
+			OperationVerb:   "login",
+		},
+
 		Fields: map[string]*framework.FieldSchema{
 			"request_headers": {
 				Type:        framework.TypeHeader,
