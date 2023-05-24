@@ -1,5 +1,11 @@
 ## Unreleased
 
+## 0.14.0
+
+* Add display attributes for OpenAPI OperationID's [GH-29](https://github.com/hashicorp/vault-plugin-auth-oci/pull/29)
+* update dependencies
+  * `github.com/hashicorp/vault/api` v1.9.1 [GH-31](https://github.com/hashicorp/vault-plugin-auth-oci/pull/31)
+
 ## 0.13.1
 
 CHANGES:
