@@ -23,7 +23,7 @@ variable "private_key_path" {
 }
 
 variable "instance_shape" {
-  default = "VM.Standard.E2.1.Micro"
+  default = "VM.Standard1.1"
 }
 
 provider "oci" {
@@ -63,7 +63,8 @@ variable "instance_image_ocid" {
   default = {
     # See https://docs.oracle.com/en-us/iaas/images/
     # Ubuntu 22.04
-    us-sanjose-1 = "ocid1.image.oc1.us-sanjose-1.aaaaaaaa2d3tccvpnfejwhaplfwlywxmeuahdhenwnsycm6sizdmycsayajq"
+    us-sanjose-1 = "ocid1.image.oc1.us-sanjose-1.aaaaaaaarvcih66qkcvp5da7vhaggw2kgmgnwv3gnqxdlf4zhgwirlpa2yna"
+    us-phoenix-1 = "ocid1.image.oc1.phx.aaaaaaaajsoferqpz5bf6xagdw4hwh4whlq2lpqexap2d5hjnmbskxygg7va"
   }
 }
 
