@@ -9,8 +9,8 @@ import (
 
 	"github.com/hashicorp/vault/api"
 
-	"github.com/oracle/oci-go-sdk/v46/common"
-	"github.com/oracle/oci-go-sdk/v46/common/auth"
+	"github.com/oracle/oci-go-sdk/v65/common"
+	"github.com/oracle/oci-go-sdk/v65/common/auth"
 )
 
 type CLIHandler struct{}
