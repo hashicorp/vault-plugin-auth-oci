@@ -1,5 +1,12 @@
 ## Unreleased
 
+## 0.14.2
+### September 5, 2023
+
+IMPROVEMENTS:
+* Update dependencies:
+  * golang.org/x/net v0.9.0 -> v0.15.0
+
 ## 0.14.1
 ### September 5, 2023
 
