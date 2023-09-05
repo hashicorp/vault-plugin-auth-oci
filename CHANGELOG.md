@@ -1,5 +1,13 @@
 ## Unreleased
 
+## 0.14.1
+### September 5, 2023
+
+IMPROVEMENTS:
+* Update dependencies:
+  * github.com/hashicorp/vault/api v1.9.1 -> v1.9.2
+  * github.com/hashicorp/vault/sdk v0.9.0 -> v0.9.2
+
 ## 0.14.0
 
 * Add display attributes for OpenAPI OperationID's [GH-29](https://github.com/hashicorp/vault-plugin-auth-oci/pull/29)
