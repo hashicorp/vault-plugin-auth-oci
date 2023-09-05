@@ -31,7 +31,12 @@ Using those, you can run the acceptance tests via:
 cd tests/terraform
 # download your private key to this directory
 terraform init
-terraform apply -var "fingerprint=YOURFINGERPRINT" -var "tenancy_ocid=YOUR_TENANCY_OCID" -var "user_ocid=YOUR_USER_OCID" -var "private_key_path=YOUR_PRIVATE_KEY"
+terraform apply \
+  -var "fingerprint=YOURFINGERPRINT" \
+  -var "tenancy_ocid=YOUR_TENANCY_OCID" \
+  -var "user_ocid=YOUR_USER_OCID" \
+  -var "private_key_path=YOUR_PRIVATE_KEY" \
+  -var "region=YOUR_REGION"
 ```
 
 This downloads the current `main` branch from GitHub and runs the tests on an OCI instance.
@@ -40,5 +45,10 @@ It takes about 5 minutes.
 Don't forget to destroy the resources when you are done:
 
 ```sh
-terraform destroy -var "fingerprint=YOURFINGERPRINT" -var "tenancy_ocid=YOUR_TENANCY_OCID" -var "user_ocid=YOUR_USER_OCID" -var "private_key_path=YOUR_PRIVATE_KEY"
+terraform destroy \
+  -var "fingerprint=YOURFINGERPRINT" \
+  -var "tenancy_ocid=YOUR_TENANCY_OCID" \
+  -var "user_ocid=YOUR_USER_OCID" \
+  -var "private_key_path=YOUR_PRIVATE_KEY" \
+  -var "region=YOUR_REGION"
 ```
