@@ -9,4 +9,5 @@ require (
 	github.com/hashicorp/vault/sdk v0.10.0
 	github.com/oracle/oci-go-sdk v24.3.0+incompatible
 	github.com/pkg/errors v0.9.1
+	golang.org/x/net v0.15.0 // indirect
 )
