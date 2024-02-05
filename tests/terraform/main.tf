@@ -219,7 +219,7 @@ resource "null_resource" "plugin_test" {
   depends_on = [null_resource.oci_private_key]
   provisioner "remote-exec" {
     inline = [
-      "NEEDRESTART_MODE=a DEBIAN_FRONTEND=noninteractive sudo -E apt-get install -y git golang make",
+      "NEEDRESTART_MODE=a DEBIAN_FRONTEND=noninteractive sudo -E apt-get update -y && sudo -E apt-get install -y git golang make",
       "git clone https://github.com/hashicorp/vault-plugin-auth-oci",
       "cd vault-plugin-auth-oci && make testacc HOME_TENANCY_ID=${var.tenancy_ocid} ROLE_OCID_LIST=${oci_identity_group.test_group.id},${oci_identity_dynamic_group.test_dynamic_group.id} OCI_GO_SDK_DEBUG=info VAULT_LOG_LEVEL=debug",
     ]
