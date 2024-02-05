@@ -4,10 +4,11 @@ package ociauth
 import (
 	"context"
 	"fmt"
+	"sync"
+
 	"github.com/hashicorp/vault/sdk/framework"
 	"github.com/hashicorp/vault/sdk/logical"
-	"github.com/oracle/oci-go-sdk/common/auth"
-	"sync"
+	"github.com/oracle/oci-go-sdk/v65/common/auth"
 )
 
 // operationPrefixOCI is used as a prefix for OpenAPI operation id's.

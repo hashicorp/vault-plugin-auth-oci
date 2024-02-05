@@ -1,5 +1,16 @@
 ## Unreleased
 
+## 0.15.0
+### February 2, 2024
+
+IMPROVEMENTS:
+* Update go.mod version to 1.19
+* Update dependencies:
+  * github.com/oracle/oci-go-sdk v24.3.0 -> v65.57.0
+  * github.com/hashicorp/go-hclog v1.5.0 -> v1.6.2
+  * github.com/hashicorp/vault/api v1.10.0 -> v1.11.0
+  * github.com/hashicorp/vault/sdk v0.10.0 -> v0.10.2
+
 ## 0.14.2
 ### September 5, 2023
 
