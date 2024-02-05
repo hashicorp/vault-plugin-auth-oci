@@ -23,7 +23,7 @@ variable "private_key_path" {
 }
 
 variable "instance_shape" {
-  default = "VM.Standard1.1"
+  default = "VM.Standard2.2"
 }
 
 provider "oci" {
