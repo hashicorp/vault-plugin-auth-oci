@@ -23,7 +23,7 @@ variable "private_key_path" {
 }
 
 variable "instance_shape" {
-  default = "VM.Standard1.1"
+  default = "VM.Standard2.2"
 }
 
 provider "oci" {
@@ -127,6 +127,7 @@ resource "oci_core_instance" "test_instance" {
       "#!/bin/bash",
       "apt-get update",
       "NEEDRESTART_MODE=a DEBIAN_FRONTEND=noninteractive apt-get -y upgrade",
+      "NEEDRESTART_MODE=a DEBIAN_FRONTEND=noninteractive sudo -E apt-get install -y git make golang build-essential",
       "touch /tmp/user-data-completed",
     ]))
   }
@@ -219,9 +220,13 @@ resource "null_resource" "plugin_test" {
   depends_on = [null_resource.oci_private_key]
   provisioner "remote-exec" {
     inline = [
-      "NEEDRESTART_MODE=a DEBIAN_FRONTEND=noninteractive sudo -E apt-get install -y git golang make",
       "git clone https://github.com/hashicorp/vault-plugin-auth-oci",
-      "cd vault-plugin-auth-oci && make testacc HOME_TENANCY_ID=${var.tenancy_ocid} ROLE_OCID_LIST=${oci_identity_group.test_group.id},${oci_identity_dynamic_group.test_dynamic_group.id} OCI_GO_SDK_DEBUG=info VAULT_LOG_LEVEL=debug",
+      "cd vault-plugin-auth-oci",
+      "GO_VERSION=$(cat .go-version) && wget https://dl.google.com/go/go$GO_VERSION.linux-amd64.tar.gz",
+      "sudo -E rm -rf /usr/local/go && sudo -E tar -C /usr/local -xzf go$GO_VERSION.linux-amd64.tar.gz",
+      "export PATH=$PATH:/usr/local/go/bin",
+      "go version",
+      "make testacc HOME_TENANCY_ID=${var.tenancy_ocid} ROLE_OCID_LIST=${oci_identity_group.test_group.id},${oci_identity_dynamic_group.test_dynamic_group.id} OCI_GO_SDK_DEBUG=info VAULT_LOG_LEVEL=debug",
     ]
 
     connection {
