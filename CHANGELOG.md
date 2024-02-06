@@ -1,6 +1,6 @@
 ## Unreleased
 
-## 0.15.0
+## 0.15.1
 ### February 6, 2024
 
 CHANGES:
