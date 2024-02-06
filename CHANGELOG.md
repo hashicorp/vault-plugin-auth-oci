@@ -3,6 +3,12 @@
 ## 0.15.0
 ### February 6, 2024
 
+CHANGES:
+* Downgrades github.com/oracle/oci-go-sdk to v59.0.0 due to an incompatibility with Vault
+ 
+## 0.15.0
+### February 6, 2024
+
 IMPROVEMENTS:
 * Update go.mod version to 1.21
 * Update dependencies:
