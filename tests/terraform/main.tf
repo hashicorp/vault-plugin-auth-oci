@@ -223,7 +223,7 @@ resource "null_resource" "plugin_test" {
       "git clone https://github.com/hashicorp/vault-plugin-auth-oci",
       "cd vault-plugin-auth-oci",
       "GO_VERSION=$(cat .go-version) && wget https://dl.google.com/go/go$GO_VERSION.linux-amd64.tar.gz",
-      "sudo -E rm -rf /usr/local/go && sudo -E tar -C /usr/local -xzf go$GO_VERSION.linux-amd64.tar.gz",
+      "sudo -E rm -rf /usr/bin/go && sudo -E tar -C /usr/local -xzf go$GO_VERSION.linux-amd64.tar.gz",
       "export PATH=$PATH:/usr/local/go/bin",
       "go version",
       "make testacc HOME_TENANCY_ID=${var.tenancy_ocid} ROLE_OCID_LIST=${oci_identity_group.test_group.id},${oci_identity_dynamic_group.test_dynamic_group.id} OCI_GO_SDK_DEBUG=info VAULT_LOG_LEVEL=debug",
