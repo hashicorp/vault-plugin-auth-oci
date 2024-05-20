@@ -1,6 +1,10 @@
 ## Unreleased
 
+## 0.16.0
+### May 20, 2024
+
 IMPROVEMENTS:
+* Updated dependencies [PR-52](https://github.com/hashicorp/vault-plugin-auth-oci/pull/52)
 * Updated dependencies:
   * `github.com/hashicorp/go-plugin` v1.5.2 -> v1.6.0 to enable running the plugin in containers
 
