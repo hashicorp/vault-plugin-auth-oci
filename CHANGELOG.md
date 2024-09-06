@@ -1,5 +1,19 @@
 ## Unreleased
 
+
+## 0.17.0
+### Sept 5, 2024
+
+
+### Build:
+* Build with go 1.22.6
+
+
+### Dependency updates:
+* `github.com/hashicorp/vault/api` v1.12.2 -> v1.14.0
+* `github.com/hashicorp/vault/sdk` v0.11.1 -> v0.13.0
+
+
 ## 0.16.0
 ### May 20, 2024
 
