@@ -5,7 +5,7 @@
 
 
 ### Build:
-* Build with go 1.23.3
+* Build with go 1.23.6
 
 
 ### Dependency updates:
