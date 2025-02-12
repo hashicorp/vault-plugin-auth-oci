@@ -1,5 +1,16 @@
 ## Unreleased
 
+## 0.18.0
+### February 12, 2025
+
+
+### Build:
+* Build with go 1.23.3
+
+
+### Dependency updates:
+* `github.com/hashicorp/vault/api` v1.14.0 -> v1.16.0
+* `github.com/hashicorp/vault/sdk` v0.13.0 -> v0.15.0
 
 ## 0.17.0
 ### Sept 5, 2024
@@ -27,7 +38,7 @@ IMPROVEMENTS:
 
 CHANGES:
 * Downgrades github.com/oracle/oci-go-sdk to v59.0.0 due to an incompatibility with Vault
- 
+
 ## 0.15.0
 ### February 6, 2024
 
