@@ -7,7 +7,6 @@
 ### Build:
 * Build with go 1.23.6
 
-
 ### Dependency updates:
 * `github.com/hashicorp/vault/api` v1.14.0 -> v1.16.0
 * `github.com/hashicorp/vault/sdk` v0.13.0 -> v0.15.0
