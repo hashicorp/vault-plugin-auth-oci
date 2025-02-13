@@ -3,7 +3,6 @@
 ## 0.18.0
 ### February 12, 2025
 
-
 ### Build:
 * Build with go 1.23.6
 
