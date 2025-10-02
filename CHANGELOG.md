@@ -2,6 +2,8 @@
 
 ## 0.20.0
 ## Oct 2, 2025
+
+### Build:
 * Build with go 1.25.1
 
 ### Dependency updates:
