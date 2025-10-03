@@ -1,3 +1,13 @@
+## v0.20.0
+### October 3, 2025
+
+* Upgrade Go Version (#85)
+* Automated dependency upgrades (#78)
+* init changie (#83)
+* Add backport assistant workflow (#81)
+* Add backport assistant workflow (#80)
+* [Compliance] - PR Template Changes Required (#79)
+
 ## 0.19.0
 ### May 30, 2025
 
