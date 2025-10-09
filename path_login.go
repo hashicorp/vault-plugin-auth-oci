@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/vault/sdk/framework"
 	"github.com/hashicorp/vault/sdk/logical"
 	"github.com/oracle/oci-go-sdk/v59/common"
+	"github.com/oracle/oci-go-sdk/v59/core"
 	"github.com/pkg/errors"
 )
 
@@ -219,17 +220,25 @@ func (b *backend) pathLoginUpdate(ctx context.Context, req *logical.Request, dat
 
 	b.Logger().Trace("Login ok", "Method:", method, "targetUrl:", targetUrl, "id", req.ID)
 
-	// Return the response
+	if b.computeClient == nil && b.createComputeClient() != nil {
+		return logical.RespondWithStatusCode(nil, req, http.StatusInternalServerError)
+	}
+	instance, err := b.computeClient.GetInstance(ctx, core.GetInstanceRequest{InstanceId: common.String(internalClaims.GetString("opc-instance"))})
+
+	if err != nil {
+		return badRequestLogicalResponse(req, b.Logger(), err), nil
+	}
 	auth := &logical.Auth{
+		DisplayName: *instance.DisplayName,
 		Metadata: map[string]string{
 			"role_name": roleName,
 		},
 		InternalData: map[string]interface{}{
 			"role_name": roleName,
 		},
-		DisplayName: roleName,
 		Alias: &logical.Alias{
-			Name: roleName,
+			Name:     *instance.DisplayName,
+			Metadata: instance.FreeformTags,
 		},
 	}
 

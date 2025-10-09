@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/vault/sdk/framework"
 	"github.com/hashicorp/vault/sdk/logical"
 	"github.com/oracle/oci-go-sdk/v59/common/auth"
+	"github.com/oracle/oci-go-sdk/v59/core"
 )
 
 // operationPrefixOCI is used as a prefix for OpenAPI operation id's.
@@ -33,6 +34,12 @@ type backend struct {
 
 	// The client used to authenticate with OCI Identity
 	authenticationClient *AuthenticationClient
+
+	// Lock to make changes to computeClient entries
+	computeClientMutex sync.RWMutex
+
+	// The client used to compute with OCI Identity
+	computeClient *core.ComputeClient
 }
 
 func Backend() (*backend, error) {
@@ -83,6 +90,35 @@ func (b *backend) createAuthClient() error {
 	}
 
 	b.authenticationClient = &authenticationClient
+
+	return nil
+}
+
+// createAuthClient creates an compute client if one was not already created and stores in the backend.
+func (b *backend) createComputeClient() error {
+
+	b.computeClientMutex.Lock()
+	defer b.computeClientMutex.Unlock()
+
+	if b.computeClient != nil {
+		return nil
+	}
+
+	// Create the instance principal provider
+	ip, err := auth.InstancePrincipalConfigurationProvider()
+	if err != nil {
+		b.Logger().Debug("Unable to create InstancePrincipalConfigurationProvider", "err", err)
+		return fmt.Errorf("unable to create InstancePrincipalConfigurationProvider")
+	}
+
+	// Create the compute client
+	computeClient, err := core.NewComputeClientWithConfigurationProvider(ip)
+	if err != nil {
+		b.Logger().Debug("Unable to create computeClient", "err", err)
+		return fmt.Errorf("unable to create computeClient")
+	}
+
+	b.computeClient = &computeClient
 
 	return nil
 }
