@@ -8,7 +8,7 @@ import (
 
 	"github.com/hashicorp/vault/sdk/framework"
 	"github.com/hashicorp/vault/sdk/logical"
-	"github.com/oracle/oci-go-sdk/v59/common/auth"
+	"github.com/oracle/oci-go-sdk/v65/common/auth"
 )
 
 // operationPrefixOCI is used as a prefix for OpenAPI operation id's.
