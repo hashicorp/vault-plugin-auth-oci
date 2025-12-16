@@ -1,3 +1,10 @@
+## v0.20.1
+### December 16, 2025
+
+* backport release/vault-1.21.x: bump deps (#97)
+* backport of commit 1cc62478809680f27b3d5b72cf732599de314744 (#92)
+* Update changelog for v0.20.0 release (#86)
+
 ## v0.20.0
 ### October 3, 2025
 
