@@ -1,3 +1,8 @@
+## v0.18.1
+### December 16, 2025
+
+* Backport of Vault 39812 upgrade oci plugin to v65 into release/vault-1.19.x (#93)
+
 ## v0.20.0
 ### October 3, 2025
 
