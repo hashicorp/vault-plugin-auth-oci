@@ -5,9 +5,9 @@ go 1.25.1
 require (
 	github.com/hashicorp/errwrap v1.1.0
 	github.com/hashicorp/go-hclog v1.6.3
-	github.com/hashicorp/vault/api v1.21.0
-	github.com/hashicorp/vault/sdk v0.19.0
-	github.com/oracle/oci-go-sdk/v65 v65.101.1
+	github.com/hashicorp/vault/api v1.22.0
+	github.com/hashicorp/vault/sdk v0.21.0
+	github.com/oracle/oci-go-sdk/v65 v65.107.0
 	github.com/pkg/errors v0.9.1
 )
 
