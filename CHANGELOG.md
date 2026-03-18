@@ -1,3 +1,13 @@
+## v0.21.0
+### March 18, 2026
+
+* prepare v0.21.0 release (#101)
+* [COMPLIANCE] Update Copyright and License Headers (#91)
+* Update changelog for v0.15.2 release (#98)
+* Bump dependencies (#95)
+* chore: remove changie (#88)
+* Vault 39812 upgrade oci plugin to v65 (#87)
+
 ## Unreleased
 ## v0.21.0
 ### March 17, 2026
