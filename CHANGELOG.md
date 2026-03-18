@@ -1,3 +1,13 @@
+## Unreleased
+## v0.21.0
+### March 17, 2026
+
+IMPROVEMENTS:
+* Update dependencies(#101)
+  * go 1.25.1 => 1.26.1
+  * github.com/hashicorp/vault/sdk v0.19.0 => v0.23.0
+  * github.com/hashicorp/vault/api v1.21.0 => v1.22.0
+
 ## v0.15.2
 ### December 16, 2025
 
