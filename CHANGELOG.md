@@ -1,3 +1,8 @@
+## v0.21.1
+### March 20, 2026
+
+* Automated dependency upgrades (#103)
+
 ## Unreleased
 ## v0.21.0
 ### March 17, 2026
