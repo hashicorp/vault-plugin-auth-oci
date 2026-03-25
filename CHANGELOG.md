@@ -3,7 +3,6 @@
 
 * Automated dependency upgrades (#103)
 
-## Unreleased
 ## v0.21.0
 ### March 17, 2026
 
@@ -12,11 +11,18 @@ IMPROVEMENTS:
   * go 1.25.1 => 1.26.1
   * github.com/hashicorp/vault/sdk v0.19.0 => v0.23.0
   * github.com/hashicorp/vault/api v1.21.0 => v1.22.0
+* upgrade oci plugin to v65 (#87)
 
 ## v0.15.2
 ### December 16, 2025
 
 * Backport of Vault 39812 upgrade oci plugin to v65 into release/vault-1.16.x (#96)
+
+## v0.20.1
+### December 16, 2025
+
+* upgrade dependencies (#97)
+* upgrade oci plugin to v65 (#92)
 
 ## v0.20.0
 ### October 3, 2025
@@ -36,6 +42,11 @@ IMPROVEMENTS:
 
 ### Dependency updates:
 * `github.com/hashicorp/vault/sdk` v0.15.0 -> v0.17.0
+
+## v0.18.1
+### December 16, 2025
+
+* upgrade oci plugin to v65 (#93)
 
 ## 0.18.0
 ### February 12, 2025
