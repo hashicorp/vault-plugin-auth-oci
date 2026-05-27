@@ -43,9 +43,14 @@ func (client *AuthenticationClient) setConfigurationProvider(configProvider comm
 		return err
 	}
 
-	// Error has been checked already
+	// Region() error is safe to ignore: IsConfigurationProviderValid above
+	// already verified the provider can return a valid region.
 	region, _ := configProvider.Region()
 	client.config = &configProvider
+
+	// OCI_SDK_AUTH_CLIENT_REGION_URL allows overriding the auth endpoint for
+	// environments where the region is not yet in the SDK's realm registry.
+	// When unset, SetRegion resolves the correct realm-specific domain via the SDK.
 	if regionURL, ok := os.LookupEnv("OCI_SDK_AUTH_CLIENT_REGION_URL"); ok {
 		client.Host = regionURL
 	} else {
