@@ -57,7 +57,7 @@ func (provider testConfigurationProvider) AuthType() (common.AuthConfig, error) 
 }
 
 // TestAuthenticationClientSetRegionAllRealms verifies that SetRegion produces the correct
-// auth endpoint URL for one representative region from each OCI realm.
+// auth endpoint URL across known OCI realms.
 //
 // The original bug (VAULT-39812) used DefaultHostURLTemplate which hardcodes ".oraclecloud.com"
 // and omits the "https://" scheme, causing failures for any non-oc1 realm (e.g. Doha = oc21
