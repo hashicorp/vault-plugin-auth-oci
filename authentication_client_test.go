@@ -56,44 +56,24 @@ func (provider testConfigurationProvider) AuthType() (common.AuthConfig, error) 
 	return common.AuthConfig{AuthType: common.UnknownAuthenticationType}, nil
 }
 
-// TestAuthenticationClientSetRegionAllRealms verifies that SetRegion produces the correct
-// auth endpoint URL across known OCI realms.
+// TestAuthenticationClientSetRegion verifies that SetRegion produces the correct
+// auth endpoint URL for both a standard oc1 region and the non-oc1 region that
+// triggered VAULT-39812.
 //
-// The original bug (VAULT-39812) used DefaultHostURLTemplate which hardcodes ".oraclecloud.com"
-// and omits the "https://" scheme, causing failures for any non-oc1 realm (e.g. Doha = oc21
-// which requires ".oraclecloud21.com"). The fix uses EndpointForTemplate which is realm-aware.
+// The original bug used DefaultHostURLTemplate which hardcodes ".oraclecloud.com",
+// causing failures for realms with a different domain suffix (e.g. Doha = oc21,
+// which requires ".oraclecloud21.com"). The fix delegates to EndpointForTemplate,
+// which is realm-aware. Full realm-to-domain mapping is tested by the OCI SDK itself.
 func TestAuthenticationClientSetRegionAllRealms(t *testing.T) {
 	tests := []struct {
 		realm        string
 		region       string
 		expectedHost string
 	}{
-		// oc1 — standard commercial
+		// oc1 — standard commercial: must still resolve to oraclecloud.com
 		{"oc1", "us-ashburn-1", "https://auth.us-ashburn-1.oraclecloud.com"},
-		// oc3 — US Government
-		{"oc3", "us-gov-ashburn-1", "https://auth.us-gov-ashburn-1.oraclegovcloud.com"},
-		// oc4 — UK Government
-		{"oc4", "uk-gov-london-1", "https://auth.uk-gov-london-1.oraclegovcloud.uk"},
-		// oc8 — Japan Government
-		{"oc8", "ap-chiyoda-1", "https://auth.ap-chiyoda-1.oraclecloud8.com"},
-		// oc9 — Muscat DCC
-		{"oc9", "me-dcc-muscat-1", "https://auth.me-dcc-muscat-1.oraclecloud9.com"},
-		// oc10 — Canberra DCC
-		{"oc10", "ap-dcc-canberra-1", "https://auth.ap-dcc-canberra-1.oraclecloud10.com"},
-		// oc14 — EU DCC
-		{"oc14", "eu-dcc-milan-1", "https://auth.eu-dcc-milan-1.oraclecloud14.com"},
-		{"oc14", "eu-dcc-rating-1", "https://auth.eu-dcc-rating-1.oraclecloud14.com"},
-		{"oc14", "eu-dcc-dublin-1", "https://auth.eu-dcc-dublin-1.oraclecloud14.com"},
-		// oc15 — Gazipur DCC
-		{"oc15", "ap-dcc-gazipur-1", "https://auth.ap-dcc-gazipur-1.oraclecloud15.com"},
-		// oc21 — Doha DCC
+		// oc21 — Doha DCC: regression case for VAULT-39812
 		{"oc21", "me-dcc-doha-1", "https://auth.me-dcc-doha-1.oraclecloud21.com"},
-		// oc24 — Zurich DCC
-		{"oc24", "eu-dcc-zurich-1", "https://auth.eu-dcc-zurich-1.oraclecloud24.com"},
-		// oc26 — Abu Dhabi 3
-		{"oc26", "me-abudhabi-3", "https://auth.me-abudhabi-3.oraclecloud26.com"},
-		// oc29 — Abu Dhabi 2
-		{"oc29", "me-abudhabi-2", "https://auth.me-abudhabi-2.oraclecloud29.com"},
 	}
 
 	for _, tc := range tests {
