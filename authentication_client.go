@@ -43,13 +43,18 @@ func (client *AuthenticationClient) setConfigurationProvider(configProvider comm
 		return err
 	}
 
-	// Error has been checked already
+	// Region() error is safe to ignore: IsConfigurationProviderValid above
+	// already verified the provider can return a valid region.
 	region, _ := configProvider.Region()
 	client.config = &configProvider
+
+	// OCI_SDK_AUTH_CLIENT_REGION_URL allows overriding the auth endpoint for
+	// environments where the region is not yet in the SDK's realm registry.
+	// When unset, SetRegion resolves the correct realm-specific domain via the SDK.
 	if regionURL, ok := os.LookupEnv("OCI_SDK_AUTH_CLIENT_REGION_URL"); ok {
 		client.Host = regionURL
 	} else {
-		client.Host = fmt.Sprintf(common.DefaultHostURLTemplate, "auth", string(region))
+		client.SetRegion(region)
 	}
 	client.BasePath = "/v1"
 	return nil
@@ -57,7 +62,7 @@ func (client *AuthenticationClient) setConfigurationProvider(configProvider comm
 
 // SetRegion overrides the region of this client.
 func (client *AuthenticationClient) SetRegion(region string) {
-	client.Host = fmt.Sprintf(common.DefaultHostURLTemplate, "auth", region)
+	client.Host = common.StringToRegion(region).EndpointForTemplate("auth", "https://auth.{region}.{secondLevelDomain}")
 }
 
 // AuthenticateClient takes in a request to authenticate a client, makes the API request to OCI Identity and returns the Response.
