@@ -1,3 +1,7 @@
+## Unreleased
+
+* fix OCI auth endpoint resolution for non-oc1 realms (e.g. `me-dcc-doha-1`) to use the correct realm-specific domain instead of always using `oraclecloud.com` (#106)
+
 ## v0.20.0
 ### October 3, 2025
 

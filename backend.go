@@ -75,7 +75,7 @@ func (b *backend) createAuthClient() error {
 		return fmt.Errorf("unable to create InstancePrincipalConfigurationProvider")
 	}
 
-	// Create the authentication client
+	// Create the authentication client using the instance principal provider
 	authenticationClient, err := NewAuthenticationClientWithConfigurationProvider(ip)
 	if err != nil {
 		b.Logger().Debug("Unable to create authenticationClient", "err", err)
