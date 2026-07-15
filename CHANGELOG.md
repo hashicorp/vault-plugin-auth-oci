@@ -17,7 +17,6 @@
    * github.com/hashicorp/go-secure-stdlib/plugincontainer v0.4.2 => v0.5.0
    * github.com/hashicorp/vault/api v1.22.0 => v1.23.0
    * github.com/hashicorp/vault/sdk v0.24.0 => v0.25.1
-   * github.com/jackc/pgx/v5 v5.9.1 => v5.9.2
    * github.com/oklog/run v1.1.0 => v1.2.0
    * github.com/opencontainers/image-spec v1.1.0 => v1.1.1
    * go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.58.0 => v0.67.0
@@ -27,7 +26,7 @@
    * golang.org/x/crypto v0.46.0 => v0.53.0
    * golang.org/x/net v0.48.0 => v0.56.0
    * golang.org/x/oauth2 v0.34.0 => v0.36.0
-   * golang.org/x/sync v0.20.0 => v0.21.0
+   * golang.org/x/sync v0.19.0 => v0.21.0
    * golang.org/x/sys v0.40.0 => v0.46.0
    * golang.org/x/text v0.32.0 => v0.38.0
    * golang.org/x/time v0.12.0 => v0.15.0
