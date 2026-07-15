@@ -20,7 +20,6 @@
    * github.com/hashicorp/vault/api v1.21.0 => v1.22.0
    * github.com/hashicorp/vault/sdk v0.19.0 => v0.21.0
    * github.com/jackc/pgtype v1.14.3 => v1.14.4
-   * github.com/jackc/pgx/v5 v5.9.1 => v5.9.2
    * github.com/oklog/run v1.1.0 => v1.2.0
    * github.com/opencontainers/image-spec v1.1.0 => v1.1.1
    * github.com/stretchr/testify v1.10.0 => v1.11.1
