@@ -1,6 +1,6 @@
 module github.com/hashicorp/vault-plugin-auth-oci
 
-go 1.25.11
+go 1.25.10
 
 require (
 	github.com/hashicorp/errwrap v1.1.0
