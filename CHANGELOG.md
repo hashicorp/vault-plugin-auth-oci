@@ -4,7 +4,7 @@
 * fix OCI auth endpoint resolution for non-oc1 realms (e.g. `me-dcc-doha-1`) to use the correct realm-specific domain instead of always using `oraclecloud.com` (#106)
 
 ### Dependency updates:
-   * go 1.25.0 => 1.25.11
+   * go 1.25.0 => 1.25.10
    * cloud.google.com/go/auth v0.14.1 => v0.18.2
    * cloud.google.com/go/auth/oauth2adapt v0.2.7 => v0.2.8
    * cloud.google.com/go/cloudsqlconn v1.4.3 => v1.20.2
