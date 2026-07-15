@@ -1,6 +1,43 @@
-## Unreleased
+## v0.19.2
+### July 15, 2026
 
 * fix OCI auth endpoint resolution for non-oc1 realms (e.g. `me-dcc-doha-1`) to use the correct realm-specific domain instead of always using `oraclecloud.com` (#106)
+
+### Dependency updates:
+   * go 1.25.0 => 1.25.11
+   * cloud.google.com/go/auth v0.14.1 => v0.18.2
+   * cloud.google.com/go/auth/oauth2adapt v0.2.7 => v0.2.8
+   * cloud.google.com/go/cloudsqlconn v1.4.3 => v1.20.2
+   * cloud.google.com/go/compute/metadata v0.6.0 => v0.9.0
+   * github.com/docker/go-connections v0.5.0 => v0.6.0
+   * github.com/fatih/color v1.18.0 => v1.19.0
+   * github.com/go-jose/go-jose/v4 v4.1.1 => v4.1.4
+   * github.com/go-logr/logr v1.4.2 => v1.4.3
+   * github.com/googleapis/enterprise-certificate-proxy v0.3.4 => v0.3.14
+   * github.com/googleapis/gax-go/v2 v2.14.1 => v2.18.0
+   * github.com/hashicorp/go-plugin v1.6.1 => v1.7.0
+   * github.com/hashicorp/go-secure-stdlib/plugincontainer v0.4.2 => v0.5.0
+   * github.com/hashicorp/vault/api v1.21.0 => v1.22.0
+   * github.com/jackc/pgtype v1.14.3 => v1.14.4
+   * github.com/jackc/pgx/v5 v5.9.1 => v5.9.2
+   * github.com/oklog/run v1.1.0 => v1.2.0
+   * github.com/opencontainers/image-spec v1.1.0 => v1.1.1
+   * github.com/stretchr/testify v1.10.0 => v1.11.1
+   * go.opentelemetry.io/auto/sdk v1.1.0 => v1.2.1
+   * go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.58.0 => v0.67.0
+   * go.opentelemetry.io/otel v1.35.0 => v1.42.0
+   * go.opentelemetry.io/otel/metric v1.35.0 => v1.42.0
+   * go.opentelemetry.io/otel/trace v1.35.0 => v1.42.0
+   * golang.org/x/crypto v0.46.0 => v0.52.0
+   * golang.org/x/net v0.47.0 => v0.55.0
+   * golang.org/x/oauth2 v0.28.0 => v0.36.0
+   * golang.org/x/sys v0.39.0 => v0.45.0
+   * golang.org/x/text v0.32.0 => v0.37.0
+   * golang.org/x/time v0.12.0 => v0.15.0
+   * google.golang.org/api v0.221.0 => v0.271.0
+   * google.golang.org/genproto/googleapis/rpc v0.0.0-20250207221924-e9438ea467c6 => v0.0.0-20260330182312-d5a96adf58d8
+   * google.golang.org/grpc v1.70.0 => v1.79.3
+   * google.golang.org/protobuf v1.36.5 => v1.36.11
 
 ## 0.19.0
 ### May 30, 2025
