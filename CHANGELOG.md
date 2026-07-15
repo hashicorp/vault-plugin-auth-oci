@@ -1,4 +1,4 @@
-## v0.18.2
+## 0.18.2
 ### July 15, 2026
 
 * fix OCI auth endpoint resolution for non-oc1 realms (e.g. `me-dcc-doha-1`) to use the correct realm-specific domain instead of always using `oraclecloud.com` (#106)
@@ -17,7 +17,6 @@
    * github.com/googleapis/gax-go/v2 v2.14.1 => v2.18.0
    * github.com/hashicorp/go-plugin v1.6.1 => v1.7.0
    * github.com/hashicorp/go-secure-stdlib/plugincontainer v0.4.2 => v0.5.0
-   * github.com/jackc/pgx/v5 v5.9.1 => v5.9.2
    * github.com/jackc/pgtype v1.14.3 => v1.14.4
    * github.com/oklog/run v1.1.0 => v1.2.0
    * github.com/opencontainers/image-spec v1.1.0 => v1.1.1
