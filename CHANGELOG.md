@@ -1,3 +1,11 @@
+## v0.20.2
+### July 16, 2026
+
+* Prepare v0.20.2 release (#115)
+* backport of commit f2c78835c4703c1fc3ebf50c20185eb1cf98b6e9 (#111)
+* backport release/vault-1.21.x: bump deps (#97)
+* backport of commit 1cc62478809680f27b3d5b72cf732599de314744 (#92)
+
 ## Unreleased
 
 * fix OCI auth endpoint resolution for non-oc1 realms (e.g. `me-dcc-doha-1`) to use the correct realm-specific domain instead of always using `oraclecloud.com` (#106)
