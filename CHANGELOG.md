@@ -1,7 +1,10 @@
 ## v0.20.2
 ### July 15, 2026
 
-* fix OCI auth endpoint resolution for non-oc1 realms (e.g. `me-dcc-doha-1`) to use the correct realm-specific domain instead of always using `oraclecloud.com` (#106)
+* Fix OCI auth endpoint resolution for non-oc1 realms (e.g. `me-dcc-doha-1`) to use the correct realm-specific domain instead of always using `oraclecloud.com` (#106)
+
+### Build:
+* Build with go 1.25.12
 
 ### Dependency updates:
    * go 1.25.1 => 1.25.11
