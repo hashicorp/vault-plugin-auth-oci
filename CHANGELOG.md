@@ -1,3 +1,11 @@
+## v0.18.3
+### July 23, 2026
+
+* Prepare v0.18.3 release (#117)
+* Prepare v0.18.2 release (#113)
+* backport of commit f2c78835c4703c1fc3ebf50c20185eb1cf98b6e9 (#109)
+* Backport of Vault 39812 upgrade oci plugin to v65 into release/vault-1.19.x (#93)
+
 ## Unreleased
 
 * fix OCI auth endpoint resolution for non-oc1 realms (e.g. `me-dcc-doha-1`) to use the correct realm-specific domain instead of always using `oraclecloud.com` (#106)
