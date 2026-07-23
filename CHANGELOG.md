@@ -1,3 +1,19 @@
+## 0.18.3
+### July 23, 2026
+
+### Build:
+* Build with go 1.25.12
+
+### Dependency updates:
+   * go.opentelemetry.io/otel v1.42.0 => v1.43.0
+   * go.opentelemetry.io/otel/metric v1.42.0 => v1.43.0
+   * go.opentelemetry.io/otel/trace v1.42.0 => v1.43.0
+   * golang.org/x/crypto v0.52.0 => v0.53.0
+   * golang.org/x/net v0.55.0 => v0.56.0
+   * golang.org/x/sys v0.45.0 => v0.46.0
+   * golang.org/x/text v0.37.0 => v0.39.0
+   * google.golang.org/grpc v1.79.3 => v1.82.1
+
 ## 0.18.2
 ### July 15, 2026
 
