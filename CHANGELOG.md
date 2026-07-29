@@ -1,11 +1,6 @@
 ## Unreleased
 
 * fix OCI auth endpoint resolution for non-oc1 realms (e.g. `me-dcc-doha-1`) to use the correct realm-specific domain instead of always using `oraclecloud.com` (#106)
-* Update indirect dependencies to resolve security vulnerabilities (CVE-2026-42508, CVE-2026-39830, CVE-2026-39831): ([#107](https://github.com/hashicorp/vault-plugin-auth-oci/pull/107))
-  * golang.org/x/crypto v0.46.0 => v0.54.0
-  * golang.org/x/net v0.48.0 => v0.56.0
-  * golang.org/x/sys v0.40.0 => v0.47.0
-  * golang.org/x/text v0.32.0 => v0.40.0
 
 ## v0.21.1
 ### March 20, 2026
