@@ -7,7 +7,7 @@ require (
 	github.com/hashicorp/go-hclog v1.6.3
 	github.com/hashicorp/vault/api v1.23.0
 	github.com/hashicorp/vault/sdk v0.25.1
-	github.com/oracle/oci-go-sdk/v65 v65.124.1
+	github.com/oracle/oci-go-sdk/v65 v65.123.0
 	github.com/pkg/errors v0.9.1
 )
 
