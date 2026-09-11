@@ -3,11 +3,7 @@
 
 * chore: automated Go/dependency update via vault-plugin-release (#122)
 * VAULT-48512: upgrade golang.org/x/crypto to v0.54.0 to resolve 7 CVEs (#121)
-* VAULT-39812: fix OCI auth endpoint resolution for realm-specific regions (#106)
-
-## Unreleased
-
-* fix OCI auth endpoint resolution for non-oc1 realms (e.g. `me-dcc-doha-1`) to use the correct realm-specific domain instead of always using `oraclecloud.com` (#106)
+* VAULT-39812: fix OCI auth endpoint resolution for realm-specific regions : fix OCI auth endpoint resolution for non-oc1 realms (e.g. `me-dcc-doha-1`) to use the correct realm-specific domain instead of always using `oraclecloud.com` (#106)
 
 ## v0.21.1
 ### March 20, 2026
