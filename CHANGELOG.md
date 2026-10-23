@@ -1,3 +1,9 @@
+## v0.22.1
+### October 23, 2026
+
+* updated dependencies and go version (#124)
+* [CHANGELOG] Prepare for v0.22.0 release (#123)
+
 ## v0.22.0
 ### September 11, 2026
 
