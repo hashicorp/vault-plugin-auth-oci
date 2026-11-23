@@ -13,12 +13,20 @@ import (
 	"github.com/oracle/oci-go-sdk/v65/common/auth"
 )
 
-type CLIHandler struct{}
+type CLIHandler struct {
+	// BinaryName is the executable shown in help. It defaults to "vault".
+	BinaryName string
+}
 
 func (h *CLIHandler) Help() string {
+	binaryName := h.BinaryName
+	if binaryName == "" {
+		binaryName = "vault"
+	}
+
 	help := `
-Usage: vault login -method=oci auth_type=apikey 
-       vault login -method=oci auth_type=instance 
+Usage: ` + binaryName + ` login -method=oci auth_type=apikey 
+       ` + binaryName + ` login -method=oci auth_type=instance 
 
   The OCI auth method allows users to authenticate with OCI
   credentials. The OCI credentials may be specified in a number of ways,
@@ -33,12 +41,12 @@ Usage: vault login -method=oci auth_type=apikey
 		First create a configuration file as explained in https://docs.us-phoenix-1.oraclecloud.com/Content/API/Concepts/sdkconfig.htm
 		Then login using the following command:
 
-		$ vault login -method=oci auth_type=apikey role=<RoleName>
+		$ ` + binaryName + ` login -method=oci auth_type=apikey role=<RoleName>
 
   Authenticate using Instance Principal:
 		https://docs.cloud.oracle.com/iaas/Content/Identity/Tasks/callingservicesfrominstances.htm
 		
-		$ vault login -method=oci auth_type=instance role=<RoleName>
+		$ ` + binaryName + ` login -method=oci auth_type=instance role=<RoleName>
 
 Configuration:
   auth_type=<string>
